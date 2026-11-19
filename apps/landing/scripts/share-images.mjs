@@ -13,7 +13,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 // Where the site is served from, with its closing slash. Change it here and run this script.
-const SITE_URL = "https://carltonaikins.com/stow/";
+const SITE_URL = "https://www.carltonaikins.com/stow/";
 // Which drawing og.png and twitter.png are made from: "a" (the window, light), "b" (the tray on
 // the icon's indigo) or "c" (the window, dark).
 const CHOSEN = "a";
