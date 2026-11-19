@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
+    <title>Stow: one place for what your agents know</title>
+    <meta name="description" content="Stow is a Mac app that puts every AI agent's memory, instructions, skills, MCP servers and sessions in one place, and proposes cleanups you approve.">
+    <!-- share:start (written by scripts/share-images.mjs from its SITE_URL: change the address there) -->
+    <link rel="canonical" href="https://carltonaikins.com/stow/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Stow">
+    <meta property="og:title" content="Stow: one place for what your agents know">
+    <meta property="og:description" content="Stow is a Mac app that puts every AI agent's memory, instructions, skills, MCP servers and sessions in one place, and proposes cleanups you approve.">
+    <meta property="og:url" content="https://carltonaikins.com/stow/">
+    <meta property="og:image" content="https://carltonaikins.com/stow/assets/og.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="The Stow icon and name, with the line: one place for what your agents know.">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:creator" content="@31carlton7">
+    <meta name="twitter:title" content="Stow: one place for what your agents know">
+    <meta name="twitter:description" content="Stow is a Mac app that puts every AI agent's memory, instructions, skills, MCP servers and sessions in one place, and proposes cleanups you approve.">
+    <meta name="twitter:image" content="https://carltonaikins.com/stow/assets/twitter.png">
+    <!-- share:end -->
+    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <link rel="apple-touch-icon" href="assets/touch-icon.png">
+    <link rel="stylesheet" href="styles.css">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <svg class="sprite" aria-hidden="true">
+      <symbol id="mark-claude"><path d="m4.7144 15.9555 4.7174-2.6471.079-.2307-.079-.1275h-.2307l-.7893-.0486-2.6956-.0729-2.3375-.0971-2.2646-.1214-.5707-.1215-.5343-.7042.0546-.3522.4797-.3218.686.0608 1.5179.1032 2.2767.1578 1.6514.0972 2.4468.255h.3886l.0546-.1579-.1336-.0971-.1032-.0972L6.973 9.8356l-2.55-1.6879-1.3356-.9714-.7225-.4918-.3643-.4614-.1578-1.0078.6557-.7225.8803.0607.2246.0607.8925.686 1.9064 1.4754 2.4893 1.8336.3643.3035.1457-.1032.0182-.0728-.164-.2733-1.3539-2.4467-1.445-2.4893-.6435-1.032-.17-.6194c-.0607-.255-.1032-.4674-.1032-.7285L6.287.1335 6.6997 0l.9957.1336.419.3642.6192 1.4147 1.0018 2.2282 1.5543 3.0296.4553.8985.2429.8318.091.255h.1579v-.1457l.1275-1.706.2368-2.0947.2307-2.6957.0789-.7589.3764-.9107.7468-.4918.5828.2793.4797.686-.0668.4433-.2853 1.8517-.5586 2.9021-.3643 1.9429h.2125l.2429-.2429.9835-1.3053 1.6514-2.0643.7286-.8196.85-.9046.5464-.4311h1.0321l.759 1.1293-.34 1.1657-1.0625 1.3478-.8804 1.1414-1.2628 1.7-.7893 1.36.0729.1093.1882-.0183 2.8535-.607 1.5421-.2794 1.8396-.3157.8318.3886.091.3946-.3278.8075-1.967.4857-2.3072.4614-3.4364.8136-.0425.0304.0486.0607 1.5482.1457.6618.0364h1.621l3.0175.2247.7892.522.4736.6376-.079.4857-1.2142.6193-1.6393-.3886-3.825-.9107-1.3113-.3279h-.1822v.1093l1.0929 1.0686 2.0035 1.8092 2.5075 2.3314.1275.5768-.3218.4554-.34-.0486-2.2039-1.6575-.85-.7468-1.9246-1.621h-.1275v.17l.4432.6496 2.3436 3.5214.1214 1.0807-.17.3521-.6071.2125-.6679-.1214-1.3721-1.9246L14.38 17.959l-1.1414-1.9428-.1397.079-.674 7.2552-.3156.3703-.7286.2793-.6071-.4614-.3218-.7468.3218-1.4753.3886-1.9246.3157-1.53.2853-1.9004.17-.6314-.0121-.0425-.1397.0182-1.4328 1.9672-2.1796 2.9446-1.7243 1.8456-.4128.164-.7164-.3704.0667-.6618.4008-.5889 2.386-3.0357 1.4389-1.882.929-1.0868-.0062-.1579h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"/></symbol>
+      <symbol id="mark-codex"><path d="M9.205 8.658v-2.26c0-.19.072-.333.238-.428l4.543-2.616c.619-.357 1.356-.523 2.117-.523 2.854 0 4.662 2.212 4.662 4.566 0 .167 0 .357-.024.547l-4.71-2.759a.797.797 0 00-.856 0l-5.97 3.473zm10.609 8.8V12.06c0-.333-.143-.57-.429-.737l-5.97-3.473 1.95-1.118a.433.433 0 01.476 0l4.543 2.617c1.309.76 2.189 2.378 2.189 3.948 0 1.808-1.07 3.473-2.76 4.163zM7.802 12.703l-1.95-1.142c-.167-.095-.239-.238-.239-.428V5.899c0-2.545 1.95-4.472 4.591-4.472 1 0 1.927.333 2.712.928L8.23 5.067c-.285.166-.428.404-.428.737v6.898zM12 15.128l-2.795-1.57v-3.33L12 8.658l2.795 1.57v3.33L12 15.128zm1.796 7.23c-1 0-1.927-.332-2.712-.927l4.686-2.712c.285-.166.428-.404.428-.737v-6.898l1.974 1.142c.167.095.238.238.238.428v5.233c0 2.545-1.974 4.472-4.614 4.472zm-5.637-5.303l-4.544-2.617c-1.308-.761-2.188-2.378-2.188-3.948A4.482 4.482 0 014.21 6.327v5.423c0 .333.143.571.428.738l5.947 3.449-1.95 1.118a.432.432 0 01-.476 0zm-.262 3.9c-2.688 0-4.662-2.021-4.662-4.519 0-.19.024-.38.047-.57l4.686 2.71c.286.167.571.167.856 0l5.97-3.448v2.26c0 .19-.07.333-.237.428l-4.543 2.616c-.619.357-1.356.523-2.117.523zm5.899 2.83a5.947 5.947 0 005.827-4.756C22.287 18.339 24 15.84 24 13.296c0-1.665-.713-3.282-1.998-4.448.119-.5.19-.999.19-1.498 0-3.401-2.759-5.947-5.946-5.947-.642 0-1.26.095-1.88.31A5.962 5.962 0 0010.205 0a5.947 5.947 0 00-5.827 4.757C1.713 5.447 0 7.945 0 10.49c0 1.666.713 3.283 1.998 4.448-.119.5-.19 1-.19 1.499 0 3.401 2.759 5.946 5.946 5.946.642 0 1.26-.095 1.88-.309a5.96 5.96 0 004.162 1.713z" fill-rule="evenodd"/></symbol>
+      <symbol id="mark-cursor"><path d="M11.503.131 1.891 5.678a.84.84 0 0 0-.42.726v11.188c0 .3.162.575.42.724l9.609 5.55a1 1 0 0 0 .998 0l9.61-5.55a.84.84 0 0 0 .42-.724V6.404a.84.84 0 0 0-.42-.726L12.497.131a1.01 1.01 0 0 0-.996 0M2.657 6.338h18.55c.263 0 .43.287.297.515L12.23 22.918c-.062.107-.229.064-.229-.06V12.335a.59.59 0 0 0-.295-.51l-9.11-5.257c-.109-.063-.064-.23.061-.23"/></symbol>
+      <symbol id="mark-gemini"><path d="M11.04 19.32Q12 21.51 12 24q0-2.49.93-4.68.96-2.19 2.58-3.81t3.81-2.55Q21.51 12 24 12q-2.49 0-4.68-.93a12.3 12.3 0 0 1-3.81-2.58 12.3 12.3 0 0 1-2.58-3.81Q12 2.49 12 0q0 2.49-.96 4.68-.93 2.19-2.55 3.81a12.3 12.3 0 0 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"/></symbol>
+      <symbol id="mark-realm"><path d="M0.5196 24.9A1.8 1.8 0 0 1 0.5196 23.1L9.4804 7.5795A1.8 1.8 0 0 1 11.0392 6.6795L28.9608 6.6795A1.8 1.8 0 0 1 30.5196 7.5795L39.4804 23.1A1.8 1.8 0 0 1 39.4804 24.9L30.5196 40.4205A1.8 1.8 0 0 1 28.9608 41.3205L11.0392 41.3205A1.8 1.8 0 0 1 9.4804 40.4205ZM24.4 20.8823L28.2 14.3005L35.9 27.6373L32.1 34.2191Z" fill-rule="evenodd"/></symbol>
+      <symbol id="mark-opencode"><path d="M13 14H3V2H13V14ZM10.5 4.4H5.5V11.6H10.5V4.4Z" fill-rule="evenodd"/></symbol>
+      <symbol id="mark-hermes"><image class="on-light" href="assets/marks/hermes.svg" width="24" height="24"/><image class="on-dark" href="assets/marks/hermes-dark.svg" width="24" height="24"/></symbol>
+      <symbol id="mark-openclaw"><image href="assets/marks/openclaw.svg" width="24" height="24"/></symbol>
+    </svg>
+
+
+    <header class="nav glass">
+      <a class="brand" href="#top"><img src="assets/icon.png" width="26" height="26" alt="">Stow</a>
+      <a class="nav-download" data-download href="https://github.com/31Carlton7/stow/releases/latest">Download</a>
+    </header>
+
+    <main id="top">
+      <!-- The opening: each agent's file, loose on the page, squares up and drops into the tray. -->
+      <section class="opening">
+        <h1>Everything your agents know, stowed.</h1>
+        <p class="lede">Stow is a Mac app that gathers every AI agent's memory, instructions, skills and servers in one place, and proposes cleanups you approve. Your files stay where they are.</p>
+        <a class="button" data-download href="https://github.com/31Carlton7/stow/releases/latest">Download for Mac</a>
+        <p class="requires">macOS 13 or later · Apple silicon and Intel · Free and open source</p>
+        <div class="stow" role="img" aria-label="Eight files, one from each agent, standing together in a tray.">
+          <div class="tray-back"></div>
+          <ul class="sheets" aria-hidden="true">
+            <li class="sheet" style="--i: 0; --fx: -36; --sy: -95; --sr: -11deg"><svg viewBox="0 0 24 24" style="color: #D97757"><use href="#mark-claude"/></svg><b>CLAUDE.md</b><i></i><i></i><i></i></li>
+            <li class="sheet" style="--i: 1; --fx: -24; --sy: -160; --sr: 7deg"><svg viewBox="0 0 24 24"><use href="#mark-codex"/></svg><b>AGENTS.md</b><i></i><i></i><i></i></li>
+            <li class="sheet" style="--i: 2; --fx: -13; --sy: -88; --sr: -5deg"><svg viewBox="0 0 24 24"><use href="#mark-cursor"/></svg><b>rules.mdc</b><i></i><i></i><i></i></li>
+            <li class="sheet" style="--i: 3; --fx: -4; --sy: -150; --sr: 9deg"><svg viewBox="0 0 24 24" style="color: #4796E3"><use href="#mark-gemini"/></svg><b>GEMINI.md</b><i></i><i></i><i></i></li>
+            <li class="sheet" style="--i: 4; --fx: 7; --sy: -96; --sr: -8deg"><svg viewBox="0 6.6795 40 34.641" style="color: #4F8CF5"><use href="#mark-realm"/></svg><b>MEMORY.md</b><i></i><i></i><i></i></li>
+            <li class="sheet" style="--i: 5; --fx: 16; --sy: -165; --sr: 5deg"><svg viewBox="0 0 16 16"><use href="#mark-opencode"/></svg><b>AGENTS.md</b><i></i><i></i><i></i></li>
+            <li class="sheet" style="--i: 6; --fx: 27; --sy: -90; --sr: 12deg"><svg viewBox="0 0 24 24"><use href="#mark-hermes"/></svg><b>SOUL.md</b><i></i><i></i><i></i></li>
+            <li class="sheet" style="--i: 7; --fx: 37; --sy: -150; --sr: -9deg"><svg viewBox="0 0 24 24"><use href="#mark-openclaw"/></svg><b>USER.md</b><i></i><i></i><i></i></li>
+          </ul>
+          <div class="tray-front"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="4" width="8" height="2" rx="1" opacity="0.4"/><rect x="5.5" y="7.5" width="13" height="2" rx="1" opacity="0.66"/><rect x="3.25" y="11.25" width="17.5" height="9" rx="3.25"/></svg></div>
+        </div>
+      </section>
+
+      <section class="statement" aria-label="What Stow reads">
+        <p>
+          <span class="named"><svg viewBox="0 0 24 24" style="color: #D97757" aria-hidden="true"><use href="#mark-claude"/></svg>Claude&nbsp;Code</span> keeps what it knows in one folder.
+          <span class="named"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-codex"/></svg>Codex</span> in another.
+          <span class="named"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-cursor"/></svg>Cursor</span>,
+          <span class="named"><svg viewBox="0 0 24 24" style="color: #4796E3" aria-hidden="true"><use href="#mark-gemini"/></svg>Gemini</span>,
+          <span class="named"><svg viewBox="0 6.6795 40 34.641" style="color: #4F8CF5" aria-hidden="true"><use href="#mark-realm"/></svg>Realm</span>,
+          <span class="named"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#mark-opencode"/></svg>opencode</span>,
+          <span class="named"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-hermes"/></svg>Hermes</span> and
+          <span class="named"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-openclaw"/></svg>OpenClaw</span> each have their own.
+          Stow reads them all where they sit and keeps only an index, so removing it loses nothing.
+        </p>
+      </section>
+
+      <!-- The real window: captures of the built app, chosen with the chips. -->
+      <section class="real" id="app">
+        <div class="head">
+          <h2>One window for all of it.</h2>
+          <p class="lede" data-screen-says aria-live="polite"><span>Every memory and instruction file.</span> A grid of cards or a list, grouped by agent or by project, with copies of the same memory collapsed into one.</p>
+        </div>
+        <div class="chips" role="tablist" aria-label="Screens of the app">
+          <button role="tab" aria-selected="true" data-screen="library">Library</button>
+          <button role="tab" aria-selected="false" data-screen="review">Review</button>
+          <button role="tab" aria-selected="false" data-screen="health">Health</button>
+          <button role="tab" aria-selected="false" data-screen="sessions">Sessions</button>
+          <button role="tab" aria-selected="false" data-screen="servers">MCP servers</button>
+          <button role="tab" aria-selected="false" data-screen="settings">Settings</button>
+        </div>
+        <div class="window-wrap">
+          <div class="window" data-screens>
+            <picture data-screen="library">
+              <source srcset="assets/library-dark.webp" media="(prefers-color-scheme: dark)">
+              <img src="assets/library-light.webp" width="2560" height="1640" alt="The library as a grid of cards." decoding="async">
+            </picture>
+            <picture data-screen="review" hidden>
+              <source srcset="assets/review-dark.webp" media="(prefers-color-scheme: dark)">
+              <img src="assets/review-light.webp" width="2560" height="1640" alt="Review: a list of findings, and one open with the line its fix would remove." loading="lazy" decoding="async">
+            </picture>
+            <picture data-screen="health" hidden>
+              <source srcset="assets/health-dark.webp" media="(prefers-color-scheme: dark)">
+              <img src="assets/health-light.webp" width="2560" height="1640" alt="Health: what a session loads, where the storage goes, and what tidying would save." loading="lazy" decoding="async">
+            </picture>
+            <picture data-screen="sessions" hidden>
+              <source srcset="assets/sessions-dark.webp" media="(prefers-color-scheme: dark)">
+              <img src="assets/sessions-light.webp" width="2560" height="1640" alt="Sessions: a conversation open, with what it had loaded." loading="lazy" decoding="async">
+            </picture>
+            <picture data-screen="servers" hidden>
+              <source srcset="assets/servers-dark.webp" media="(prefers-color-scheme: dark)">
+              <img src="assets/servers-light.webp" width="2560" height="1640" alt="MCP servers: four servers, and one open with where it is defined and its secret hidden." loading="lazy" decoding="async">
+            </picture>
+            <picture data-screen="settings" hidden>
+              <source srcset="assets/settings-dark.webp" media="(prefers-color-scheme: dark)">
+              <img src="assets/settings-light.webp" width="2560" height="1640" alt="Settings: appearance and the accent colour, matching the Mac." loading="lazy" decoding="async">
+            </picture>
+            <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+          </div>
+        </div>
+      </section>
+
+      <!-- The app at work, drawn by the page. Each tile does what the app does and nothing more. -->
+      <section class="work" id="work">
+        <div class="head">
+          <h2>Tidy, with your say&#8209;so.</h2>
+          <p class="lede">These are small working copies of what the app does. Press them.</p>
+        </div>
+        <div class="bento">
+          <article class="tile tile-review" data-demo="review">
+            <header><p class="kicker">Review</p><h3>Every fix is a diff you approve, and can undo.</h3></header>
+            <div class="finding">
+              <p class="finding-title"><svg viewBox="0 0 24 24" style="color: #D97757" aria-hidden="true"><use href="#mark-claude"/></svg><span>Links to 1 file that is not there</span><em class="finding-state" aria-live="polite">Waiting</em></p>
+              <p class="path">~/.claude/CLAUDE.md</p>
+              <div class="diff" role="img" aria-label="The fix removes one line that links to a missing file.">
+                <p><b>12</b>- Run the checks in docs/checks.md first.</p>
+                <p class="del"><b>13</b>- See <u>notes/old-setup.md</u> for the staging keys.</p>
+                <p><b>14</b>- Never commit to main.</p>
+              </div>
+              <div class="finding-actions">
+                <button class="act act-primary" data-approve>Approve</button>
+                <button class="act" data-dismiss>Dismiss</button>
+              </div>
+            </div>
+            <p class="foot">Rules find duplicates, broken links, orphans, empty files an agent still loads, and setups that conflict.</p>
+          </article>
+
+          <article class="tile tile-model" data-demo="model">
+            <header><p class="kicker">A second reader</p><h3>A model reads for what rules cannot see. Only if you turn it on.</h3></header>
+            <label class="switch-row">
+              <span>Let a model read the library</span>
+              <input type="checkbox" class="switch" data-model-switch>
+            </label>
+            <ul class="model-finds">
+              <li><b>Out of date</b><span>A note that no longer matches the project.</span></li>
+              <li><b>Contradictory</b><span>Two instructions that cannot both be followed.</span></li>
+            </ul>
+            <p class="foot" data-model-foot>Off. Nothing has been sent anywhere.</p>
+          </article>
+
+          <article class="tile tile-dupes" data-demo="dupes">
+            <header><p class="kicker">Library</p><h3>Copies of one memory collapse into one.</h3></header>
+            <button class="dupes" data-dupes aria-label="Collapse or spread the copies">
+              <span class="dupe"><svg viewBox="0 0 24 24" style="color: #D97757" aria-hidden="true"><use href="#mark-claude"/></svg>Use pnpm, never npm</span>
+              <span class="dupe"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-codex"/></svg>Use pnpm, never npm</span>
+              <span class="dupe"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-cursor"/></svg>Use pnpm, never npm</span>
+              <em class="dupe-count">3 copies</em>
+            </button>
+            <p class="foot">One list or a grid of cards, by agent or by project, searchable. Star what you return to and filter by Favorites.</p>
+          </article>
+
+          <article class="tile tile-loaded" data-demo="loaded">
+            <header><p class="kicker">Sessions</p><h3>What a session had loaded.</h3></header>
+            <ul class="bars">
+              <li style="--fill: 0.82"><span>Instructions</span><i></i></li>
+              <li style="--fill: 0.56"><span>Memory</span><i></i></li>
+              <li style="--fill: 0.38"><span>Skills</span><i></i></li>
+              <li style="--fill: 0.24"><span>MCP servers</span><i></i></li>
+            </ul>
+            <p class="foot">Transcripts from Claude and Codex, indexed where they are.</p>
+          </article>
+
+          <article class="tile tile-health" data-demo="health">
+            <header><p class="kicker">Health</p><h3>What loads before your first word.</h3></header>
+            <div class="store" role="img" aria-label="A bar of storage in parts, one of which tidying would save.">
+              <i style="--part: 5"></i><i style="--part: 3"></i><i style="--part: 2"></i><i class="saved" style="--part: 2"></i>
+            </div>
+            <ul class="legend">
+              <li>Where the storage goes</li>
+              <li class="saved">What tidying would save</li>
+            </ul>
+            <p class="foot">Counted from your own files and transcripts.</p>
+          </article>
+
+          <article class="tile tile-servers" data-demo="servers">
+            <header><p class="kicker">Skills, MCP servers, Hooks</p><h3>Every copy, where it is defined, and whether it connects.</h3></header>
+            <ul class="servers">
+              <li data-state="idle"><i></i><b>github</b><span class="where"><svg viewBox="0 0 24 24" style="color: #D97757" aria-hidden="true"><use href="#mark-claude"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-codex"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-cursor"/></svg></span><em></em></li>
+              <li data-state="idle"><i></i><b>postgres</b><span class="where"><svg viewBox="0 0 24 24" style="color: #D97757" aria-hidden="true"><use href="#mark-claude"/></svg><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-cursor"/></svg></span><em></em></li>
+              <li data-state="idle" data-fails><i></i><b>files</b><span class="where"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-codex"/></svg></span><em></em></li>
+            </ul>
+            <div class="servers-foot">
+              <p class="foot">Add and remove servers across agents, and bring in skills from a repository.</p>
+              <button class="act" data-check>Check</button>
+            </div>
+          </article>
+
+          <article class="tile tile-accent" data-demo="accent">
+            <header><p class="kicker">A Mac app</p><h3>System material, the Mac's own type, and your accent colour.</h3></header>
+            <div class="swatches" role="radiogroup" aria-label="Accent colour for this page's working copies">
+              <button role="radio" aria-checked="true" aria-label="Indigo" style="--swatch: #5b55e6"></button>
+              <button role="radio" aria-checked="false" aria-label="Blue" style="--swatch: #0a84ff"></button>
+              <button role="radio" aria-checked="false" aria-label="Purple" style="--swatch: #a550a7"></button>
+              <button role="radio" aria-checked="false" aria-label="Pink" style="--swatch: #f74f9e"></button>
+              <button role="radio" aria-checked="false" aria-label="Red" style="--swatch: #ff5257"></button>
+              <button role="radio" aria-checked="false" aria-label="Orange" style="--swatch: #f7821b"></button>
+              <button role="radio" aria-checked="false" aria-label="Green" style="--swatch: #4fa83d"></button>
+              <button role="radio" aria-checked="false" aria-label="Graphite" style="--swatch: #8c8c8c"></button>
+            </div>
+            <p class="foot">Pick one: the working copies on this page follow, as the app follows your Mac. Light and dark.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="closing">
+        <img src="assets/icon.png" width="88" height="88" alt="" loading="lazy">
+        <h2>One place for what your agents know.</h2>
+        <p class="lede">Everything is read, indexed and tidied on your Mac. There is no account to make.</p>
+        <a class="button" data-download href="https://github.com/31Carlton7/stow/releases/latest">Download for Mac</a>
+        <p class="requires">Free and open source. <a href="https://github.com/31Carlton7/stow">Read the source on GitHub</a></p>
+      </section>
+    </main>
+
+    <footer>
+      <div class="foot-row">
+        <a class="brand" href="index.html"><img src="assets/icon.png" width="22" height="22" alt="">Stow</a>
+        <nav aria-label="About this site">
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+          <a href="https://github.com/31Carlton7/stow/blob/main/LICENSE">MIT License</a>
+          <a href="https://github.com/31Carlton7/stow">Source</a>
+        </nav>
+      </div>
+      <div class="foot-row">
+        <p>Made by Carlton Aikins</p>
+        <nav aria-label="Carlton Aikins elsewhere">
+          <a href="https://x.com/31carlton7">X</a>
+          <a href="https://www.instagram.com/31carlton7">Instagram</a>
+          <a href="https://carltonaikins.com">carltonaikins.com</a>
+        </nav>
+      </div>
+      <p class="marks-note">The agents' names and marks belong to their owners and are shown only to say what Stow reads.</p>
+    </footer>
+  </body>
+</html>

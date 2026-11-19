@@ -1,0 +1,66 @@
+# Packaging. Run `pnpm dist` at the repo root: it builds everything, scripts/stage-pack.mjs lays the
+# server out in .pack-stage/, and electron-builder packs out/ into the asar and .pack-stage/ into
+# Contents/Resources.
+appId: co.charmtechnologies.stow
+productName: Stow
+copyright: Copyright © 2026 Carlton Aikins
+directories:
+  output: release
+files:
+  - out/**
+# Nothing native is in the app and it has no production dependencies to collect (package.json
+# "//dependencies"), so packaging never runs npm or node-gyp.
+npmRebuild: false
+nodeGypRebuild: false
+asar: true
+# runAsNode stays on: the server is this app's own binary run as Node (src/main/server-process.ts).
+# NODE_OPTIONS, --inspect and a loose app folder are each a way to run someone else's code in main.
+# Flipping a fuse voids the framework's ad hoc signature, which Apple silicon refuses to launch, so an
+# unsigned build is signed ad hoc again; a signed one is signed over it anyway.
+electronFuses:
+  resetAdHocDarwinSignature: true
+  runAsNode: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+extraResources:
+  # The server has to be real files on disk: a child process cannot be started from inside the asar.
+  - from: .pack-stage
+    to: .
+mac:
+  # One universal app, so the download link is one file for Apple silicon and Intel alike.
+  target:
+    - target: dmg
+      arch: universal
+    - target: zip
+      arch: universal
+  category: public.app-category.developer-tools
+  icon: build/icon.icns
+  # No `identity` here: scripts/pack.mjs adds `-c.mac.identity=null` when the environment carries no
+  # CSC_LINK or CSC_NAME, and scripts/notarize.cjs notarizes a signed build (docs/dev/signing.md).
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: resources/entitlements.mac.plist
+  entitlementsInherit: resources/entitlements.mac.plist
+afterSign: scripts/notarize.cjs
+dmg:
+  # A stable file name, so the site's download link never changes; the version is in the volume's name.
+  artifactName: Stow.${ext}
+  title: Stow ${version}
+  background: build/dmg-background.tiff
+  icon: build/icon.icns
+  iconSize: 128
+  # The window is the background's size in points. The icons' centres sit on the artwork
+  # (scripts/make-dmg-background.mjs draws the arrow between these two points).
+  window:
+    width: 660
+    height: 420
+  contents:
+    - x: 180
+      y: 190
+      type: file
+    - x: 480
+      y: 190
+      type: link
+      path: /Applications

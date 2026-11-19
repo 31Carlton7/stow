@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <!-- The picture a link to the site unfurls with. scripts/share-images.mjs opens this file once
+         for each drawing (the body's data-drawing: a, b or c), puts the agents' marks from
+         index.html into it, and saves what it shows. -->
+    <base href="../">
+    <style>
+      :root { color-scheme: light; --ground: #fbfbfd; --ink: #1d1d1f; --ink-3: #6e6e73; --sheet: #fff; --fill: rgb(60 60 67 / 0.12); }
+      * { box-sizing: border-box; margin: 0; }
+      html, body { width: 100%; height: 100%; overflow: hidden; }
+      body {
+        position: relative;
+        background: var(--ground);
+        color: var(--ink);
+        font: 400 22px/1.4 -apple-system, BlinkMacSystemFont, "SF Pro Display", "Helvetica Neue", system-ui, sans-serif;
+        -webkit-font-smoothing: antialiased;
+      }
+      svg { fill: currentColor; }
+      .sprite { position: absolute; width: 0; height: 0; }
+      .on-dark { display: none; }
+
+      .words { position: absolute; left: 80px; top: 50%; width: 470px; translate: 0 -50%; }
+      .name { display: flex; align-items: center; gap: 16px; font-size: 40px; letter-spacing: -0.02em; }
+      .name img { width: 64px; height: 64px; }
+      h1 { margin-top: 40px; font-size: 68px; font-weight: 300; line-height: 1.04; letter-spacing: -0.034em; text-wrap: balance; }
+      .kind { margin-top: 28px; color: var(--ink-3); }
+
+      .window {
+        position: absolute;
+        left: 610px;
+        top: 96px;
+        width: 960px;
+        overflow: hidden;
+        border-radius: 14px;
+        corner-shape: squircle;
+        box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.18), 0 30px 60px -20px rgb(0 0 0 / 0.3);
+      }
+      .window img { display: block; width: 100%; }
+      .lights { position: absolute; top: 18px; left: 15px; display: flex; gap: 6px; }
+      .lights i { width: 9px; height: 9px; border-radius: 50%; }
+      .lights i:nth-child(1) { background: #ff5f57; }
+      .lights i:nth-child(2) { background: #febc2e; }
+      .lights i:nth-child(3) { background: #28c840; }
+
+      /* The tray, as the page's opening draws it, a little larger. */
+      .stow { --u: 1.12px; position: absolute; right: 78px; top: 50%; width: calc(510 * var(--u)); height: calc(210 * var(--u)); translate: 0 -46%; }
+      .tray-back, .tray-front { position: absolute; left: 0; bottom: 0; width: 100%; border-radius: calc(34 * var(--u)); corner-shape: squircle; }
+      .tray-back { height: calc(146 * var(--u)); background: rgb(255 255 255 / 0.3); }
+      .tray-front { z-index: 2; display: grid; place-items: center; height: calc(104 * var(--u)); background: linear-gradient(to bottom, #fff, #e4e8ff); box-shadow: 0 -8px 18px -10px rgb(20 14 90 / 0.45); color: #4a40d4; }
+      .tray-front svg { width: calc(34 * var(--u)); height: calc(34 * var(--u)); }
+      .sheet {
+        position: absolute;
+        z-index: 1;
+        left: calc((28 + var(--i) * 46) * var(--u));
+        bottom: calc(26 * var(--u));
+        display: grid;
+        align-content: start;
+        justify-items: start;
+        gap: calc(9 * var(--u));
+        width: calc(132 * var(--u));
+        height: calc(168 * var(--u));
+        padding: calc(13 * var(--u));
+        border-radius: calc(15 * var(--u));
+        corner-shape: squircle;
+        background: var(--sheet);
+        box-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.12), 0 6px 14px rgb(20 14 90 / 0.16);
+        color: #1d1d1f;
+        list-style: none;
+      }
+      .sheet svg { width: calc(22 * var(--u)); height: calc(22 * var(--u)); }
+      .sheet i { width: 100%; height: calc(5 * var(--u)); margin-top: calc(14 * var(--u)); border-radius: 999px; background: var(--fill); }
+
+      [data-drawing="a"] .stow, [data-drawing="c"] .stow, [data-drawing="b"] .window { display: none; }
+
+      [data-drawing="b"] { background: linear-gradient(to bottom, #8390ff, #4136c8); color: #fff; }
+      [data-drawing="b"] .kind { color: rgb(255 255 255 / 0.76); }
+
+      [data-drawing="c"] { --ground: #0b0b0d; --ink: #f5f5f7; --ink-3: #86868b; }
+      [data-drawing="c"] .window { box-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.2), 0 30px 60px -20px #000; }
+    </style>
+  </head>
+  <body data-drawing="a">
+    <div class="words">
+      <p class="name"><img src="assets/icon.png" alt="">Stow</p>
+      <h1>One place for what your agents know.</h1>
+      <p class="kind">A Mac app. Free and open source.</p>
+    </div>
+    <div class="window">
+      <img data-capture src="assets/library-light.webp" alt="">
+      <span class="lights"><i></i><i></i><i></i></span>
+    </div>
+    <div class="stow">
+      <div class="tray-back"></div>
+      <ul>
+        <li class="sheet" style="--i: 0"><svg viewBox="0 0 24 24" style="color: #D97757"><use href="#mark-claude"/></svg><i></i></li>
+        <li class="sheet" style="--i: 1"><svg viewBox="0 0 24 24"><use href="#mark-codex"/></svg><i></i></li>
+        <li class="sheet" style="--i: 2"><svg viewBox="0 0 24 24"><use href="#mark-cursor"/></svg><i></i></li>
+        <li class="sheet" style="--i: 3"><svg viewBox="0 0 24 24" style="color: #4796E3"><use href="#mark-gemini"/></svg><i></i></li>
+        <li class="sheet" style="--i: 4"><svg viewBox="0 6.6795 40 34.641" style="color: #4F8CF5"><use href="#mark-realm"/></svg><i></i></li>
+        <li class="sheet" style="--i: 5"><svg viewBox="0 0 16 16"><use href="#mark-opencode"/></svg><i></i></li>
+        <li class="sheet" style="--i: 6"><svg viewBox="0 0 24 24"><use href="#mark-hermes"/></svg><i></i></li>
+        <li class="sheet" style="--i: 7"><svg viewBox="0 0 24 24"><use href="#mark-openclaw"/></svg><i></i></li>
+      </ul>
+      <div class="tray-front"><svg viewBox="0 0 24 24"><rect x="8" y="4" width="8" height="2" rx="1" opacity="0.4"/><rect x="5.5" y="7.5" width="13" height="2" rx="1" opacity="0.66"/><rect x="3.25" y="11.25" width="17.5" height="9" rx="3.25"/></svg></div>
+    </div>
+  </body>
+</html>

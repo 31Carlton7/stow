@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; connect-src ws://127.0.0.1:*; img-src 'self' data:; font-src 'self' data:; object-src 'none'; base-uri 'self'" />
+    <title>Stow</title>
+  </head>
+  <body>
+    <!-- What glass reads through `--glass-blur` (theme/mac.css). The panel under a control is partly
+         see-through, so the blurred copy of it is too, and the sharp words behind show past it. This
+         makes the blurred copy solid wherever the page has drawn anything, and leaves it clear where
+         the page is clear, so the window's own material still shows there. -->
+    <svg width="0" height="0" aria-hidden="true" style="position: absolute">
+      <filter id="glass-solid" color-interpolation-filters="sRGB" x="0" y="0" width="1" height="1">
+        <feComponentTransfer><feFuncA type="linear" slope="4" /></feComponentTransfer>
+      </filter>
+    </svg>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

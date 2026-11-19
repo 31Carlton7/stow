@@ -1,0 +1,24 @@
+{
+  "name": "agent-memory-context",
+  "license": "MIT",
+  "private": true,
+  "packageManager": "pnpm@10.21.0",
+  "engines": { "node": ">=22.13" },
+  "pnpm": { "onlyBuiltDependencies": ["esbuild", "electron"] },
+  "scripts": {
+    "build": "pnpm -r build",
+    "dist": "pnpm build && pnpm --filter @amc/desktop dist",
+    "dist:dir": "pnpm build && pnpm --filter @amc/desktop dist:dir",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "oxlint --deny-warnings",
+    "dev": "pnpm --filter @amc/server build && pnpm -r --parallel --filter @amc/server --filter @amc/desktop dev"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.0",
+    "oxlint": "1.90.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.2.0"
+  }
+}

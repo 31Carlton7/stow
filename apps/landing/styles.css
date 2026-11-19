@@ -1,0 +1,553 @@
+/* The page is the app's family: the system face set thin, squircles, capsules, one spring, flat
+   grounds, and the app's own glass on the bar. The --glass-* values are copied from
+   apps/desktop/src/renderer/src/theme/mac.css; change them there first. */
+
+:root {
+  color-scheme: light dark;
+
+  /* The icon's two colours. They are laid on objects (the tray, a button), never behind type. */
+  --brand-top: #8390ff;
+  --brand-bottom: #4136c8;
+  --brand: #4a40d4;
+
+  --ground: #fbfbfd;
+  --panel: #f1f1f5;
+  --inset: #fff;
+  --sheet: #fff;
+  --solid: #fff;
+  --ink: #1d1d1f;
+  --ink-2: #515154;
+  --ink-3: #6e6e73;
+  --fill: rgb(60 60 67 / 0.07);
+  --fill-strong: rgb(60 60 67 / 0.12);
+  --hairline: rgb(60 60 67 / 0.16);
+
+  /* The colour of what acts in the working copies. The swatches in the last tile change it. */
+  --accent: #5b55e6;
+  --accent-ink: color-mix(in oklab, var(--accent) 86%, black);
+  --green: #1f9d4c;
+  --red: #d93a30;
+
+  --r-ctl: 14px;
+  --r-row: 18px;
+  --r-card: 28px;
+  /* The one measure: the bar, every section and the foot are this wide and share their edges. */
+  --gutter: clamp(20px, 5vw, 48px);
+  --page: min(1080px, 100% - 2 * var(--gutter));
+  --section: clamp(96px, 12vw, 168px);
+
+  --spring: cubic-bezier(0.2, 0.9, 0.25, 1);
+  --throw: cubic-bezier(0.3, 1.4, 0.5, 1);
+  --sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", system-ui, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, monospace;
+
+  --glass-tint: rgb(255 255 255 / 0.5);
+  /* No url(#glass-solid) step as in the app: the ground under this glass is opaque, and Safari
+     drops a backdrop-filter that names an SVG filter. */
+  --glass-blur: blur(24px) saturate(190%) brightness(1.12);
+  --glass-sheen: linear-gradient(to bottom, rgb(255 255 255 / 0.6), rgb(255 255 255 / 0) 46%, rgb(255 255 255 / 0.22));
+  --glass-edge: inset 0 0.5px 0 rgb(255 255 255 / 0.95), inset 0 0 0 0.5px rgb(255 255 255 / 0.55), inset 0 -3px 5px -3px rgb(0 0 0 / 0.07);
+  --glass-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.07), 0 1px 2px rgb(0 0 0 / 0.06), 0 6px 16px rgb(0 0 0 / 0.09);
+
+  --window-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.16), 0 2px 6px rgb(0 0 0 / 0.05), 0 36px 70px -28px rgb(0 0 0 / 0.28);
+  --sheet-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.05), 0 6px 14px rgb(0 0 0 / 0.07);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --brand: #5d57e8;
+
+    --ground: #0b0b0d;
+    --panel: #17171a;
+    --inset: #222226;
+    --sheet: #2a2a30;
+    --solid: #2a2a30;
+    --ink: #f5f5f7;
+    --ink-2: #a1a1a6;
+    --ink-3: #86868b;
+    --fill: rgb(255 255 255 / 0.07);
+    --fill-strong: rgb(255 255 255 / 0.13);
+    --hairline: rgb(255 255 255 / 0.14);
+
+    --accent-ink: color-mix(in oklab, var(--accent) 62%, white);
+    --green: #32d074;
+    --red: #ff6a5e;
+
+    --glass-tint: rgb(84 84 92 / 0.42);
+    --glass-sheen: linear-gradient(to bottom, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.02) 46%, rgb(255 255 255 / 0.07));
+    --glass-edge: inset 0 0.5px 0 rgb(255 255 255 / 0.42), inset 0 -0.5px 0 rgb(255 255 255 / 0.14), inset 0 0 0 0.5px rgb(255 255 255 / 0.1), inset 0 -3px 5px -3px rgb(0 0 0 / 0.3);
+    --glass-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.36), 0 1px 2px rgb(0 0 0 / 0.22), 0 6px 16px rgb(0 0 0 / 0.2);
+
+    --window-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.16), 0 36px 70px -28px rgb(0 0 0 / 0.9);
+    --sheet-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.12), 0 6px 14px rgb(0 0 0 / 0.3);
+  }
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  overflow-x: clip;
+  background: var(--ground);
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  overflow-x: clip;
+  color: var(--ink);
+  font: 400 1.0625rem/1.5 var(--sans);
+  font-synthesis: none;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, p, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-decoration: none; }
+button { font: inherit; color: inherit; border: 0; background: none; padding: 0; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 3px; border-radius: 8px; }
+.sprite { position: absolute; width: 0; height: 0; }
+svg { fill: currentColor; }
+
+/* Headings are thin and large: size and space make the order, never weight. */
+h1, h2 { font-weight: 300; text-wrap: balance; }
+h1 { font-size: clamp(2.5rem, 6vw, 4.75rem); line-height: 1.03; letter-spacing: -0.034em; }
+h2 { font-size: clamp(2rem, 4.6vw, 3.5rem); line-height: 1.06; letter-spacing: -0.03em; }
+h3 { font-size: 1.25rem; line-height: 1.25; letter-spacing: -0.014em; font-weight: 400; text-wrap: balance; }
+
+.lede {
+  color: var(--ink-2);
+  font-size: clamp(1.125rem, 1.6vw, 1.3125rem);
+  line-height: 1.42;
+  letter-spacing: -0.008em;
+  text-wrap: pretty;
+}
+.kicker { color: var(--ink-3); font-size: 0.875rem; }
+
+/* Glass, as the app makes it: a tint, the blur of what is behind, the light on its face and edges,
+   and a shadow that lifts it. Only the bar wears it: it is the one thing the page passes under. */
+.glass {
+  background: var(--glass-sheen), var(--glass-tint);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-edge), var(--glass-shadow);
+  border-radius: 999px;
+}
+
+/* ── The bar ──
+   Centred by its margins, not by `left: 50%`: that would hold it to half the window's width. */
+.nav {
+  position: fixed;
+  z-index: 10;
+  top: 14px;
+  inset-inline: 0;
+  width: var(--page);
+  margin-inline: auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 52px;
+  padding: 0 9px 0 14px;
+  white-space: nowrap;
+}
+.brand { display: flex; align-items: center; gap: 9px; font-size: 1.0625rem; font-weight: 500; letter-spacing: -0.012em; }
+.nav-download {
+  display: flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: scale 120ms ease-out, filter 150ms ease;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  height: 52px;
+  padding: 0 28px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-weight: 500;
+  letter-spacing: -0.006em;
+  transition: scale 120ms ease-out, filter 150ms ease;
+}
+.button:hover, .nav-download:hover { filter: brightness(1.08); }
+.button:active, .nav-download:active { scale: 0.97; }
+.requires { margin-top: 14px; color: var(--ink-3); font-size: 0.875rem; text-wrap: balance; }
+.requires a { color: var(--ink-2); text-decoration: underline; text-decoration-thickness: from-font; text-underline-offset: 3px; }
+
+main > section, main.legal { position: relative; width: var(--page); margin-inline: auto; }
+.head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 20px 48px; }
+.head .lede { max-width: 34ch; justify-self: end; }
+
+/* ── The opening ── */
+.opening { padding-top: clamp(116px, 10vw, 136px); text-align: center; }
+.opening h1 { max-width: 16ch; margin-inline: auto; }
+.opening .lede { max-width: 720px; margin: 24px auto 28px; text-wrap: balance; }
+
+/* The tray and its eight sheets. Every measure is a multiple of --u so the whole drawing scales as
+   one. A sheet rests in its slot by default; with motion allowed it starts loose on the page
+   (--fx across, in hundredths of the column; --sy up; --sr turned), squares up over its slot and
+   drops in behind the tray's front. script.js adds .seen when the tray is on screen. */
+.stow {
+  --u: 1px;
+  container-type: inline-size;
+  position: relative;
+  height: calc(230 * var(--u));
+  margin-top: clamp(28px, 4vw, 44px);
+}
+.tray-back, .tray-front {
+  position: absolute;
+  left: 50%;
+  bottom: 0;
+  width: calc(510 * var(--u));
+  margin-left: calc(-255 * var(--u));
+  border-radius: calc(34 * var(--u));
+  corner-shape: squircle;
+}
+.tray-back { height: calc(146 * var(--u)); background: #332aa6; }
+.tray-front {
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  height: calc(104 * var(--u));
+  background: linear-gradient(to bottom, var(--brand-top), var(--brand-bottom));
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 calc(-6 * var(--u)) calc(14 * var(--u)) calc(-8 * var(--u)) rgb(20 14 90 / 0.5);
+  color: #fff;
+}
+.tray-front svg { width: calc(34 * var(--u)); height: calc(34 * var(--u)); opacity: 0.92; }
+.sheet {
+  --slot: calc((var(--i) - 3.5) * 46 * var(--u));
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: calc(26 * var(--u));
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: calc(9 * var(--u));
+  width: calc(132 * var(--u));
+  height: calc(168 * var(--u));
+  margin-left: calc(-66 * var(--u));
+  padding: calc(13 * var(--u));
+  border-radius: calc(15 * var(--u));
+  corner-shape: squircle;
+  background: var(--sheet);
+  box-shadow: var(--sheet-shadow);
+  transform: translate(var(--slot), 0);
+}
+.sheet svg { width: calc(22 * var(--u)); height: calc(22 * var(--u)); }
+/* A file's name is read while it lies loose. In the tray the next sheet covers it, so it is gone. */
+.sheet b { margin-top: calc(2 * var(--u)); color: var(--ink-2); font: 400 calc(10.5 * var(--u)) / 1 var(--mono); opacity: 0; }
+.sheet i { width: 100%; height: calc(5 * var(--u)); border-radius: 999px; background: var(--fill-strong); }
+.sheet i:last-child { width: 62%; }
+
+/* ── What Stow reads, as one sentence with each agent's mark beside its name ── */
+.statement { padding-top: var(--section); }
+.statement p {
+  font-size: clamp(1.5rem, 3.4vw, 2.625rem);
+  font-weight: 300;
+  line-height: 1.24;
+  letter-spacing: -0.024em;
+  text-wrap: pretty;
+}
+.named { white-space: nowrap; }
+.named svg { width: 0.74em; height: 0.74em; margin-right: 0.22em; vertical-align: -0.04em; }
+
+/* ── A picture of the window ──
+   The captures are of the page alone, so the frame is drawn here. Its measures are the window's own
+   (1280 points wide), scaled with the picture. */
+.real { padding-top: var(--section); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: clamp(28px, 4vw, 44px); }
+.chips button {
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--fill);
+  color: var(--ink-2);
+  font-size: 0.9375rem;
+  transition: scale 120ms ease-out, color 150ms ease, background-color 150ms ease;
+}
+.chips button:active { scale: 0.97; }
+.chips [aria-selected="true"] { background: var(--ink); color: var(--ground); }
+[data-screen-says] span { color: var(--ink); }
+.real .head .lede { min-height: 4.26em; }
+.window-wrap { container-type: inline-size; margin-top: 20px; }
+.window {
+  --pt: calc(100cqw / 1280);
+  position: relative;
+  display: grid;
+  overflow: hidden;
+  border-radius: calc(18 * var(--pt));
+  corner-shape: squircle;
+  box-shadow: var(--window-shadow);
+  background: var(--panel);
+}
+.window img { width: 100%; }
+.window picture { grid-area: 1 / 1; }
+.window picture[hidden] { display: none; }
+.lights { position: absolute; top: calc(24 * var(--pt)); left: calc(20 * var(--pt)); display: flex; gap: calc(8 * var(--pt)); }
+.lights i { width: calc(12 * var(--pt)); height: calc(12 * var(--pt)); border-radius: 50%; box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.14); }
+.lights i:nth-child(1) { background: #ff5f57; }
+.lights i:nth-child(2) { background: #febc2e; }
+.lights i:nth-child(3) { background: #28c840; }
+
+/* ── The app at work ── */
+.work { padding-top: var(--section); }
+.bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: 16px; margin-top: clamp(32px, 4.4vw, 56px); }
+.tile {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  grid-column: span 4;
+  padding: 28px;
+  overflow: hidden;
+  border-radius: var(--r-card);
+  corner-shape: squircle;
+  background: var(--panel);
+}
+.tile-review { grid-column: span 7; }
+.tile-model { grid-column: span 5; }
+.tile-servers { grid-column: span 7; }
+.tile-accent { grid-column: span 5; }
+.tile header { display: grid; gap: 8px; }
+.tile-dupes h3, .tile-loaded h3, .tile-health h3 { min-height: 2.5em; }
+.foot { margin-top: auto; color: var(--ink-3); font-size: 0.9375rem; line-height: 1.42; text-wrap: pretty; }
+
+.act {
+  height: 34px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--fill-strong);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: scale 120ms ease-out, background-color 150ms ease;
+}
+.act:active { scale: 0.97; }
+.act-primary { background: var(--accent); color: #fff; }
+
+/* A finding, as Review shows one. */
+/* One column that may shrink: left to itself a grid's column is as wide as its widest line of code. */
+.finding { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 16px; border-radius: var(--r-row); corner-shape: squircle; background: var(--inset); transition: opacity 300ms ease; }
+.finding-title { display: flex; align-items: center; gap: 8px; font-size: 0.9375rem; font-weight: 500; }
+.finding-title svg { flex: none; width: 18px; height: 18px; }
+.finding-title span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.finding-state { margin-left: auto; padding: 2px 10px; border-radius: 999px; background: var(--fill-strong); color: var(--ink-2); font-size: 0.75rem; font-style: normal; font-weight: 500; white-space: nowrap; transition: background-color 200ms ease, color 200ms ease; }
+.path { color: var(--ink-3); font: 0.75rem/1.4 var(--mono); }
+.diff { padding: 8px 0; overflow: hidden; border-radius: var(--r-ctl); corner-shape: squircle; background: var(--fill); font: 0.75rem/1.9 var(--mono); }
+.diff p { height: 1.9em; padding: 0 12px 0 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; transition: height 500ms var(--spring), opacity 300ms ease; }
+.diff b { display: inline-block; width: 36px; padding-right: 10px; color: var(--ink-3); font-weight: 400; text-align: right; }
+.diff .del { background: color-mix(in oklab, var(--red) 16%, transparent); box-shadow: inset 2px 0 0 var(--red); }
+.diff u { text-decoration-color: var(--red); text-decoration-style: wavy; text-underline-offset: 3px; }
+.finding-actions { display: flex; gap: 8px; margin-top: 4px; }
+[data-finding="fixed"] .del { height: 0; opacity: 0; }
+[data-finding="fixed"] .finding-state { background: color-mix(in oklab, var(--green) 18%, transparent); color: var(--green); }
+[data-finding="dismissed"] :is(.diff, .path, .finding-title span) { opacity: 0.4; }
+
+/* The Mac's switch: 38 by 22, filling with the accent, its knob stretching toward where it goes. */
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 14px 16px; border-radius: var(--r-row); corner-shape: squircle; background: var(--inset); font-size: 0.9375rem; font-weight: 500; cursor: pointer; }
+.switch { appearance: none; flex: none; position: relative; width: 38px; height: 22px; margin: 0; border-radius: 999px; background: var(--fill-strong); box-shadow: inset 0 0 0 0.5px var(--hairline); cursor: pointer; transition: background-color 200ms ease; }
+.switch::before { content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: 999px; background: #fff; box-shadow: 0 1px 3px rgb(0 0 0 / 0.3); transition: translate 300ms var(--throw), width 150ms ease-out; }
+.switch:active::before { width: 23px; }
+.switch:checked { background: var(--accent); }
+.switch:checked::before { translate: 16px 0; }
+.switch:checked:active::before { translate: 11px 0; }
+.model-finds { display: grid; gap: 8px; }
+.model-finds li { display: grid; gap: 2px; padding: 12px 16px; border-radius: var(--r-row); corner-shape: squircle; box-shadow: inset 0 0 0 1px var(--hairline); opacity: 0.42; transition: opacity 300ms ease, background-color 300ms ease, box-shadow 300ms ease; }
+.model-finds b { font-size: 0.9375rem; font-weight: 500; }
+.model-finds span { color: var(--ink-2); font-size: 0.875rem; line-height: 1.4; }
+[data-model="on"] .model-finds li { opacity: 1; background: var(--inset); box-shadow: inset 0 0 0 1px transparent; }
+[data-model="on"] .model-finds li:nth-child(2) { transition-delay: 90ms; }
+
+/* Three copies of one memory, which gather into one. */
+.dupes { position: relative; display: block; width: 100%; height: 156px; text-align: left; }
+.dupe {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 46px;
+  padding: 0 14px;
+  border-radius: var(--r-row);
+  corner-shape: squircle;
+  /* Solid, not the tiles' see-through ground: one copy lies over another. */
+  background: var(--solid);
+  box-shadow: 0 0 0 0.5px var(--hairline), 0 2px 6px rgb(0 0 0 / 0.06);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: translate 700ms var(--spring), scale 700ms var(--spring), opacity 300ms ease;
+}
+.dupe svg { flex: none; width: 18px; height: 18px; }
+.dupe:nth-child(1) { z-index: 3; }
+.dupe:nth-child(2) { z-index: 2; translate: 0 55px; }
+.dupe:nth-child(3) { z-index: 1; translate: 0 110px; }
+.dupe-count { position: absolute; z-index: 4; top: 12px; right: 12px; padding: 2px 10px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 0.75rem; font-style: normal; font-weight: 500; opacity: 0; scale: 0.6; transition: opacity 200ms ease, scale 400ms var(--throw); }
+[data-dupes="one"] .dupe:nth-child(1) { translate: 0 44px; }
+[data-dupes="one"] .dupe:nth-child(2) { translate: 0 52px; scale: 0.94; }
+[data-dupes="one"] .dupe:nth-child(3) { translate: 0 60px; scale: 0.88; }
+[data-dupes="one"] .dupe-count { opacity: 1; scale: 1; translate: 0 44px; transition-delay: 250ms; }
+
+/* What a session had loaded: bars that fill once the tile is seen. */
+.bars { display: grid; gap: 14px; }
+.bars li { display: grid; grid-template-columns: 104px 1fr; align-items: center; gap: 12px; color: var(--ink-2); font-size: 0.875rem; font-weight: 500; }
+.bars i { height: 10px; overflow: hidden; border-radius: 999px; background: var(--fill-strong); }
+.bars i::after { content: ""; display: block; height: 100%; border-radius: 999px; background: var(--accent); transform-origin: 0 50%; transform: scaleX(var(--fill)); transition: transform 1100ms var(--spring); }
+.bars li:nth-child(2) i::after { transition-delay: 80ms; }
+.bars li:nth-child(3) i::after { transition-delay: 160ms; }
+.bars li:nth-child(4) i::after { transition-delay: 240ms; }
+
+.store { display: flex; gap: 3px; height: 30px; }
+.store i { flex: var(--part); border-radius: 6px; background: color-mix(in oklab, var(--accent) 78%, transparent); transform-origin: 0 50%; transition: transform 900ms var(--spring), translate 700ms var(--throw) 700ms; }
+.store i:first-child { border-radius: 15px 6px 6px 15px; }
+.store i:nth-child(2) { background: color-mix(in oklab, var(--accent) 52%, transparent); }
+.store i:nth-child(3) { background: color-mix(in oklab, var(--accent) 30%, transparent); }
+.store .saved { border-radius: 6px 15px 15px 6px; background: repeating-linear-gradient(-45deg, var(--green) 0 5px, color-mix(in oklab, var(--green) 55%, transparent) 5px 10px); translate: 0 -8px; }
+.legend { display: grid; gap: 6px; color: var(--ink-2); font-size: 0.875rem; font-weight: 500; }
+.legend li { display: flex; align-items: center; gap: 8px; }
+.legend li::before { content: ""; width: 10px; height: 10px; border-radius: 3px; background: color-mix(in oklab, var(--accent) 78%, transparent); }
+.legend .saved::before { background: var(--green); }
+
+.servers { display: grid; gap: 6px; }
+.servers li { display: grid; grid-template-columns: 10px 96px minmax(0, 1fr) auto; align-items: center; gap: 12px; height: 46px; padding: 0 16px; border-radius: var(--r-row); corner-shape: squircle; background: var(--inset); font-size: 0.875rem; }
+.servers i { width: 10px; height: 10px; border-radius: 50%; background: var(--fill-strong); box-shadow: inset 0 0 0 0.5px var(--hairline); transition: background-color 250ms ease, scale 400ms var(--throw); }
+.servers b { font: 500 0.8125rem var(--mono); }
+.where { display: flex; gap: 8px; }
+.where svg { width: 16px; height: 16px; }
+.servers em { color: var(--ink-3); font-style: normal; font-weight: 500; text-align: right; white-space: nowrap; }
+.servers [data-state="checking"] i { background: var(--accent); scale: 0.7; }
+.servers [data-state="ok"] i { background: var(--green); }
+.servers [data-state="ok"] em { color: var(--green); }
+.servers [data-state="failed"] i { background: var(--red); }
+.servers [data-state="failed"] em { color: var(--red); }
+.servers-foot { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-top: auto; }
+.servers-foot .foot { max-width: 44ch; }
+
+.swatches { display: flex; flex-wrap: wrap; gap: 14px; padding: 4px; }
+.swatches button { width: 30px; height: 30px; border-radius: 50%; background: var(--swatch); box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.2), inset 0 1px 0 rgb(255 255 255 / 0.35); transition: scale 300ms var(--throw), box-shadow 200ms ease; }
+.swatches button:active { scale: 0.9; }
+.swatches [aria-checked="true"] { box-shadow: 0 0 0 3px var(--ground), 0 0 0 5px var(--swatch); }
+
+/* ── The close ── */
+.closing { padding-block: var(--section); text-align: center; }
+.closing img { margin-inline: auto; }
+.closing h2 { max-width: 15ch; margin: 28px auto 0; }
+.closing .lede { max-width: 30ch; margin: 20px auto 30px; }
+
+/* ── Privacy and Terms: a page of prose in the same column ── */
+.legal { min-height: 72vh; padding: clamp(124px, 13vw, 168px) 0 var(--section); }
+.legal > * { max-width: 640px; }
+.legal .lede { margin-top: 22px; }
+.legal h2 { margin-top: 52px; font-size: 1.5rem; font-weight: 400; line-height: 1.2; letter-spacing: -0.018em; }
+.legal p:not(.lede) { margin-top: 12px; color: var(--ink-2); line-height: 1.55; text-wrap: pretty; }
+.legal a, footer a:hover { color: var(--ink); }
+.legal a { text-decoration: underline; text-decoration-thickness: from-font; text-underline-offset: 3px; }
+
+footer {
+  display: grid;
+  gap: 14px;
+  width: var(--page);
+  margin-inline: auto;
+  padding: 28px 0 48px;
+  border-top: 0.5px solid var(--hairline);
+  color: var(--ink-3);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.foot-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 24px; }
+footer nav { display: flex; flex-wrap: wrap; gap: 6px 22px; }
+footer a { transition: color 150ms ease; }
+footer .brand { color: var(--ink); font-size: 0.9375rem; }
+.marks-note { font-size: 0.8125rem; text-wrap: pretty; }
+
+/* ── Motion ──
+   Each thing arrives once. script.js adds .seen to the tray and to a tile the first time it is on
+   screen. */
+@keyframes settle { from { opacity: 0; translate: 0 18px; } }
+@keyframes glass-arrive { from { opacity: 0; scale: 0.96; filter: blur(6px); } }
+@keyframes screen-arrive { from { opacity: 0; scale: 0.99; } }
+@keyframes tuck {
+  from { transform: translate(calc(var(--fx) * 1cqw), calc(var(--sy) * var(--u))) rotate(var(--sr)); animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
+  58% { transform: translate(var(--slot), calc(-124 * var(--u))) rotate(0deg); animation-timing-function: cubic-bezier(0.5, 0, 0.3, 1); }
+  to { transform: translate(var(--slot), 0) rotate(0deg); }
+}
+@keyframes name-away { from, 45% { opacity: 1; } }
+
+@media (prefers-reduced-motion: no-preference) {
+  .js .stow:not(.seen) .sheet { transform: translate(calc(var(--fx) * 1cqw), calc(var(--sy) * var(--u))) rotate(var(--sr)); }
+  /* The loose sheets need the room above the tray, and keep it afterwards so nothing below moves. */
+  .js .stow { height: calc(384 * var(--u)); }
+  .js .stow:not(.seen) .sheet b { opacity: 1; }
+  .js .stow.seen .sheet { animation: tuck 1250ms backwards; animation-delay: calc(500ms + var(--i) * 130ms); }
+  .js .stow.seen .sheet b { animation: name-away 1250ms backwards; animation-delay: calc(500ms + var(--i) * 130ms); }
+
+  .js .tile { opacity: 0; translate: 0 22px; transition: opacity 600ms ease-out, translate 900ms var(--spring); }
+  .js .tile.seen { opacity: 1; translate: 0 0; }
+  .js .tile:not(.seen) .bars i::after { transform: scaleX(0); }
+  .js .tile:not(.seen) .store i { transform: scaleX(0); }
+  .js .tile:not(.seen) .store .saved { translate: 0 0; }
+
+  /* `backwards`, not `both`: an arrival that holds its last frame keeps a layer glass cannot blur. */
+  .nav { animation: glass-arrive 420ms var(--spring) backwards; }
+  .opening > :not(.stow) { animation: settle 800ms var(--spring) backwards; }
+  .opening > .lede { animation-delay: 60ms; }
+  .opening > .button, .opening > .requires { animation-delay: 120ms; }
+  .window picture:not([hidden]) { animation: screen-arrive 360ms var(--spring) backwards; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition-duration: 1ms !important; transition-delay: 0ms !important; }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass { background: var(--ground); -webkit-backdrop-filter: none; backdrop-filter: none; }
+}
+@media (prefers-contrast: more) {
+  .glass, .tile, .chips button { box-shadow: inset 0 0 0 1px var(--ink-2); }
+  :root { --ink-2: var(--ink); --ink-3: var(--ink); }
+}
+
+/* ── Narrower windows ── */
+@media (max-width: 1080px) {
+  .tile-review, .tile-model, .tile-servers, .tile-accent, .tile-health { grid-column: span 12; }
+  .tile-dupes, .tile-loaded { grid-column: span 6; }
+  .tile h3 { min-height: 0; }
+}
+@media (max-width: 900px) {
+  .stow { --u: 0.82px; }
+}
+@media (max-width: 760px) {
+  .head { grid-template-columns: 1fr; }
+  .head .lede { justify-self: start; max-width: none; }
+  .real .head .lede { min-height: 5.7em; }
+  .tile-dupes, .tile-loaded { grid-column: span 12; }
+}
+@media (max-width: 600px) {
+  :root { --r-card: 24px; }
+  .stow { --u: 0.62px; }
+  .tile { padding: 22px; }
+  /* A whole window is too small to read at this width. It is shown at nearly twice the size from
+     its left edge, and the column's own edge cuts the rest. */
+  .window-wrap { overflow: hidden; border-radius: 12px; box-shadow: var(--window-shadow); }
+  .window { --pt: calc(185cqw / 1280); width: 185%; border-radius: 0; box-shadow: none; }
+  .servers li { grid-template-columns: 10px minmax(0, 1fr) auto; }
+  .where { justify-content: end; }
+  .servers em:empty { display: none; }
+  .servers em { grid-column: 2 / -1; text-align: left; }
+  .servers li { height: auto; min-height: 46px; padding-block: 12px; row-gap: 2px; }
+  .servers-foot { flex-direction: column; align-items: start; }
+  .swatches { gap: 8px; }
+}
+
+/* Hermes's mark is a picture with a drawing for each face: the one for the face in force shows. */
+@media (prefers-color-scheme: dark) { #mark-hermes .on-light { display: none; } }
+@media (prefers-color-scheme: light) { #mark-hermes .on-dark { display: none; } }

@@ -1,0 +1,560 @@
+/* The sections beside the library: the destinations that lead to them, the review inbox, the
+   model switchboard. Its own file so each section's rules sit together; styles.css stays the shell,
+   the controls and the library. */
+
+/* ── Destinations: the sections of the app, at the top of the sidebar ── */
+.dest { flex: none; list-style: none; margin: 0; padding: 0 12px 8px; display: flex; flex-direction: column; gap: 2px; -webkit-app-region: no-drag; }
+/* What a section has waiting: findings to review. Quiet until there is something. */
+.dest-count { flex: none; min-width: 18px; height: 18px; padding: 0 6px; border-radius: var(--r-pill); display: grid; place-items: center;
+  font-size: 11px; font-weight: var(--fw-label); font-variant-numeric: tabular-nums; background: var(--accent-fill); color: var(--on-accent); }
+.dest-rule { flex: none; height: 1px; margin: 0 20px 8px; background: var(--rl-line); }
+
+/*
+ * The switch, as the Mac draws one: a capsule track that fills with the accent, and a white knob that
+ * crosses it on a spring. Pressed, the knob stretches toward where it is going, so the throw starts
+ * under the pointer and not on release.
+ */
+.switch {
+  appearance: none; flex: none; position: relative; width: 38px; height: 22px; margin: 0; border-radius: var(--r-pill);
+  background: var(--switch-off); box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.06), inset 0 1px 2px rgb(0 0 0 / 0.08);
+  transition: background-color 220ms var(--ease-out-strong);
+}
+.switch::after {
+  content: ""; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; border-radius: var(--r-pill);
+  background: #fff; box-shadow: var(--knob-shadow);
+  transition: translate 340ms var(--spring-throw), width 180ms var(--ease-out-strong);
+}
+.switch:checked { background: var(--rl-accent); }
+.switch:checked::after { translate: 16px 0; }
+.switch:active:not(:disabled)::after { width: 22px; }
+.switch:checked:active:not(:disabled)::after { translate: 12px 0; }
+.switch:focus-visible { outline: 3px solid color-mix(in srgb, var(--rl-accent) 45%, transparent); outline-offset: 1px; }
+.switch:disabled { opacity: .45; cursor: default; }
+
+/* ── File diff: what a proposal would change, file by file ── */
+.fd-view { display: flex; flex-direction: column; gap: 8px; }
+.fd-file { border-radius: var(--r-card); corner-shape: squircle; background: var(--fill-4); overflow: hidden; }
+.fd-head { display: flex; align-items: center; gap: 8px; min-height: 30px; padding: 0 8px 0 10px; border-bottom: var(--hairline-w) solid var(--line); }
+/* Path chips (PathLabel): the directory gives way, the file name never does. */
+.fd-path { flex: 1; min-width: 0; display: flex; font: 12px var(--font-mono); color: var(--rl-text-dim); }
+.path-dir { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--rl-text-faint); }
+.path-base { flex: none; color: var(--rl-text-bright); }
+.fd-stat { flex: none; display: flex; align-items: center; gap: 6px; font: 11px var(--font-mono); font-variant-numeric: tabular-nums; }
+.fd-add { color: var(--rl-success); } .fd-del { color: var(--rl-danger); }
+/* Five cells, filled in proportion (statCells). Read before the numbers are. */
+.fd-bar { display: flex; gap: 1.5px; }
+.fd-bar i { width: 5px; height: 5px; border-radius: 1px; background: var(--mark-strong); }
+.fd-bar i[data-fill="add"] { background: var(--green); } .fd-bar i[data-fill="del"] { background: var(--red); }
+.fd-body { overflow-x: auto; padding: 4px 0; }
+/* Grid, not flex: every line's two gutters and sign share one column ruler, so the code edge stays
+   straight from the first hunk to the last however wide the numbers get. */
+.fd-line { display: grid; grid-template-columns: 38px 38px 14px 1fr; align-items: baseline;
+  font: 12px/1.65 var(--font-mono); letter-spacing: normal; white-space: pre; position: relative; }
+.fd-no { padding-right: 8px; text-align: right; overflow: hidden; user-select: none;
+  font-size: 11px; font-variant-numeric: tabular-nums; color: var(--rl-text-faint); }
+.fd-sign { text-align: center; user-select: none; color: var(--rl-text-faint); }
+.fd-text { min-width: 0; padding-right: 10px; color: var(--ink-2); }
+/* §2.4's diff tints, with the 3px state bar the diff pane uses — the same colour language on both
+   surfaces, so a change looks the same wherever the reader meets it. */
+.fd-line[data-kind="add"] { background: var(--green-tint); }
+.fd-line[data-kind="del"] { background: var(--red-tint); }
+.fd-line[data-kind="add"]::before, .fd-line[data-kind="del"]::before { content: ""; position: absolute; inset: 0 auto 0 0; width: 3px; }
+.fd-line[data-kind="add"]::before { background: var(--green); }
+.fd-line[data-kind="del"]::before { background: var(--red); }
+.fd-line[data-kind="add"] .fd-no, .fd-line[data-kind="add"] .fd-sign { color: var(--green); }
+.fd-line[data-kind="del"] .fd-no, .fd-line[data-kind="del"] .fd-sign { color: var(--red); }
+/* The span inside a line that actually changed. A stronger wash of the row's own tint, never a new
+   hue: it has to read as "this part of this change", not as a third state. */
+.fd-mark { background: color-mix(in srgb, var(--green) 26%, transparent); color: inherit; border-radius: 2px; }
+.fd-line[data-kind="del"] .fd-mark { background: color-mix(in srgb, var(--red) 26%, transparent); }
+/* The elision rail between hunks. A line of its own so the reader can see that something was
+   skipped and how much — a diff that silently jumps is a diff you cannot trust. */
+.fd-skip { display: flex; align-items: center; gap: 8px; padding: 3px 10px; font-size: 11px; color: var(--rl-text-faint); background: var(--inset); }
+.fd-skip::before, .fd-skip::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.fd-more { display: block; width: 100%; padding: 6px 10px; font-size: 12px; text-align: left; color: var(--rl-text-dim); background: var(--inset); }
+.fd-more:hover { color: var(--rl-text-bright); }
+
+/* ── The review inbox ── */
+/* The model's reading, above the findings: what it would send, and the button that sends it. */
+/* A card in the accent's wash: what a reading is, with its numbers under it across the whole card,
+   then the choice of tool and the button on a line of their own. */
+.rev-reading { flex: none; display: flex; flex-direction: column; gap: 12px; margin: 4px 10px 10px; padding: 14px 16px; border-radius: var(--r-card); corner-shape: squircle;
+  background: linear-gradient(to bottom right, var(--accent-tint), transparent 140%), var(--rl-card); }
+.rev-reading-text { display: flex; flex-direction: column; gap: 2px; }
+.rev-reading-title { margin: 0; font-size: 13px; line-height: 18px; font-weight: var(--fw-title); color: var(--rl-text-bright); }
+.rev-reading-line { margin: 0; font-size: 12px; line-height: 16px; color: var(--rl-text-dim); text-wrap: pretty; font-variant-numeric: tabular-nums; }
+.rev-reading-line[data-tone="warning"] { color: var(--rl-warning); }
+.rev-reading-acts { display: flex; align-items: center; justify-content: flex-end; gap: 8px; }
+.rev-reading-acts > .runner-picker { margin-right: auto; }
+/* Which tool is asked: each segment is the tool's mark and its name. */
+.runner-picker > .seg-opt { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.runner-picker > .seg-opt > svg { flex: none; }
+.rev-reading-acts > .btn { flex: none; }
+/* How far a reading has got: a hairline that fills with the accent. */
+.rev-reading-bar { height: 4px; border-radius: var(--r-pill); background: var(--fill-3); overflow: hidden; }
+.rev-reading-bar > span { display: block; height: 100%; border-radius: inherit; background: var(--rl-accent-fill); transition: width 400ms var(--spring); }
+.rev-rows { gap: 12px; }
+.rev-group { display: flex; flex-direction: column; gap: 2px; }
+.rev-group-name { margin: 0; padding: 4px 12px; font-size: 11px; line-height: 14px; font-weight: var(--fw-label); color: var(--rl-text-faint); }
+.rev-group-rows { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.rev-row { width: 100%; text-align: left; gap: 2px; }
+.rev-row-kind { font-size: 11px; line-height: 14px; color: var(--rl-text-dim); }
+.rev-row-model { color: var(--rl-text-faint); }
+.rev-row-title { font-size: 13px; line-height: 18px; font-weight: var(--fw-title); color: var(--rl-text-bright); overflow-wrap: anywhere;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rev-row-offer { font-size: 11px; line-height: 14px; font-weight: var(--fw-medium); color: var(--rl-text-faint); }
+.rev-row-offer[data-ready] { color: var(--rl-success); }
+.rev-applied { display: flex; align-items: center; gap: 10px; padding: 8px 10px; }
+.rev-applied-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+
+.rev-kind { margin: 0 0 6px; font-size: 12px; line-height: 16px; color: var(--rl-text-dim); }
+.rev-detail .lib-reader-note { margin: 16px 0 0; }
+.rev-heading { margin: 28px 0 8px; font-size: 13px; line-height: 16px; font-weight: var(--fw-title); color: var(--rl-text-bright); }
+.rev-fix { margin: 0 0 12px; font-size: 14px; line-height: 20px; color: var(--rl-text-bright); }
+.rev-subjects { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.rev-subject { width: calc(100% + 24px); display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; margin: 0 -12px; text-align: left; border-radius: var(--r-row); corner-shape: squircle; }
+button.rev-subject:hover { background: var(--rl-hover); }
+.rev-subject-name { font-size: 14px; line-height: 20px; color: var(--rl-text-bright); overflow-wrap: anywhere; }
+.rev-subject-path { display: flex; min-width: 0; font: 12px var(--font-mono); letter-spacing: normal; color: var(--rl-text-dim); }
+.rev-removal { flex: none; font-size: 12px; color: var(--rl-danger); }
+
+/* ── Setup: skills, MCP servers and hooks, read-only ── */
+/* A row whose line is a command: set as one, so a path reads as a path. */
+.lib-row-line[data-mono] { font-family: var(--font-mono); font-size: 12px; letter-spacing: normal; }
+.lib-chip[data-tone="warning"] { color: var(--rl-warning); }
+.lib-reader-note[data-tone="warning"] > svg { color: var(--rl-warning); }
+/* A note straight under the title lines, where the library always has the properties between them. */
+:is(.lib-reader-where, .lib-reader-desc) + .lib-reader-note { margin-top: 16px; }
+/* A command or a URL as it stands in the config, wrapped and never cut: the end of a command line is
+   where two definitions differ. */
+.setup-code { margin: 0 0 14px; padding: 12px 14px; border-radius: var(--r-row); corner-shape: squircle; background: var(--rl-card);
+  font: 12px/18px var(--font-mono); letter-spacing: normal; color: var(--rl-text-bright); white-space: pre-wrap; overflow-wrap: anywhere; }
+.setup-way { margin: 0; }
+/* Each place something is reached from or defined in: whose, the path, and how. */
+.setup-places { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.setup-places > li { display: grid; grid-template-columns: minmax(0, 1fr) max-content; gap: 1px 12px; align-items: baseline; }
+.setup-place-who { min-width: 0; font-size: 13px; line-height: 18px; color: var(--rl-text-bright); overflow-wrap: anywhere; }
+.setup-place-how { grid-column: 2; grid-row: 1; font-size: 12px; line-height: 18px; color: var(--rl-text-faint); }
+.setup-place-path { grid-column: 1 / -1; display: flex; min-width: 0; font: 12px/16px var(--font-mono); letter-spacing: normal; color: var(--rl-text-dim); }
+.setup-place-keys { grid-column: 1 / -1; font-size: 12px; line-height: 16px; color: var(--rl-text-faint); overflow-wrap: anywhere; }
+.setup-files { font-family: var(--font-mono); font-size: 12px; line-height: 18px; letter-spacing: normal; }
+
+/* ── Models: the runners, their switch, and what they have been asked ── */
+.models { flex: 1; }
+.models-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 40px 48px; --fade-top-h: 16px; --fade-h: 40px; }
+.models-page { max-width: 760px; margin: 0 auto; }
+.models-lede { margin: 10px 0 20px; font-size: 15px; line-height: 22px; color: var(--rl-text-dim); text-wrap: pretty; }
+/* The two tools side by side, their parts on the same lines whatever each says: the cards share
+   the rows of one grid, so a longer sentence in one makes that row taller in both. */
+.models-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 0 12px; }
+.models-card { display: grid; grid-row: span 4; grid-template-rows: subgrid; row-gap: 14px; margin-bottom: 12px; padding: 16px; border-radius: var(--r-card); corner-shape: squircle; background: var(--rl-card); }
+.models-card-head { display: flex; align-items: center; gap: 10px; }
+.models-card-name { flex: 1; margin: 0; font-size: 15px; line-height: 20px; font-weight: var(--fw-title); color: var(--rl-text-bright); }
+.models-allow { flex: none; display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--rl-text-dim); }
+.models-line { margin: 0; font-size: 13px; line-height: 18px; color: var(--rl-text-dim); text-wrap: pretty; }
+.models-card-said { display: flex; flex-direction: column; gap: 2px; }
+.models-signed[data-usable] { color: var(--rl-text-bright); }
+.models-version { margin-left: 8px; font-size: 12px; color: var(--rl-text-faint); font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* `minmax(0, …)`: a text field is as wide as twenty characters unless told it may be narrower, and
+   two of them side by side pushed the second out of the card. */
+.models-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.models-test { display: flex; align-items: center; gap: 10px; min-height: 36px; }
+.models-test .models-line { flex: 1; min-width: 0; }
+.models-why { margin-top: 2px; }
+.models-heading { margin: 32px 0 8px; font-size: 13px; line-height: 16px; font-weight: var(--fw-title); color: var(--rl-text-bright); }
+.models-limit { display: grid; grid-template-columns: 240px minmax(0, 1fr); align-items: end; gap: 16px; }
+.models-table { width: 100%; margin-top: 10px; border-collapse: collapse; font-size: 13px; line-height: 18px; font-variant-numeric: tabular-nums; }
+.models-table th { padding: 6px 10px 6px 0; text-align: left; font-size: 12px; font-weight: var(--fw-body); color: var(--rl-text-faint); border-bottom: var(--hairline-w) solid var(--rl-line); }
+.models-table td { padding: 7px 10px 7px 0; color: var(--rl-text-bright); border-bottom: var(--hairline-w) solid var(--rl-line); overflow-wrap: anywhere; }
+.models-table .num { text-align: right; }
+.models-table tr[data-off] td { color: var(--rl-text-faint); }
+/* Where the files are kept takes the width; the count and the switch sit together at the right edge. */
+.models-sends :is(th, td):first-child { width: 100%; }
+.models-sends :is(th, td):last-child { padding-right: 0; }
+.models-sends .switch { display: block; }
+
+/* ── Sessions: every agent's transcripts, read where they lie ── */
+/* The two switches under the sidebar's rows: a row's measure, with the switch where a row's count ends. */
+.ses-shows { display: flex; flex-direction: column; gap: 4px; }
+.ses-show { display: flex; align-items: center; gap: 10px; height: 30px; padding: 0 10px 0 8px; font-size: 13px; font-weight: var(--fw-medium); color: var(--rl-text-dim); }
+/* The way to the next 200, after the last row. */
+.ses-next { flex: none; display: flex; align-items: center; gap: 10px; padding: 10px; font-size: 12px; line-height: 16px; color: var(--rl-text-faint); font-variant-numeric: tabular-nums; }
+/* How far the index has got, at the foot of the column while it is working. */
+.ses-status { flex: none; margin: 0; padding: 8px 20px 10px; font-size: 12px; line-height: 16px; color: var(--rl-text-faint); font-variant-numeric: tabular-nums; }
+.ses-children { margin-top: 14px; }
+
+/* The transcript. A person's words, the model's prose, a folded row and a note each have a shape of
+   their own, because each is read differently. */
+.ses-blocks, .ses-context { display: flex; flex-direction: column; margin-top: 24px; }
+.ses-blocks { gap: 10px; }
+.ses-blocks > .empty-state, .ses-context > .empty-state { padding: 48px 0; }
+/* A person's words: set to the right on a card, as wide as they are and no wider than most of the column. */
+.ses-user { align-self: flex-end; max-width: 85%; margin: 10px 0 2px; padding: 9px 14px; border-radius: var(--r-squircle-card); corner-shape: squircle; background: var(--rl-card); }
+.ses-user-text { margin: 0; font-size: 14px; line-height: 21px; color: var(--rl-text-bright); white-space: pre-wrap; overflow-wrap: anywhere; }
+.ses-assistant { font-size: 14px; color: var(--rl-text-bright); }
+.ses-cut { margin: 4px 0 0; font-size: 12px; line-height: 16px; color: var(--rl-text-faint); }
+/* A folded row: thinking, or one tool call. One line until it is opened. */
+.ses-fold { display: flex; flex-direction: column; min-width: 0; }
+.ses-fold-row { position: relative; display: flex; align-items: center; gap: 8px; min-width: 0; height: 28px; margin: 0 -8px; padding: 0 8px; text-align: left;
+  border-radius: var(--r-chip); corner-shape: squircle; font-size: 13px; line-height: 18px; color: var(--rl-text-dim); }
+.ses-fold-row::after { content: ""; position: absolute; inset: -5px 0; }
+.ses-fold-row:hover { background: var(--rl-hover); color: var(--rl-text-bright); }
+.ses-fold-mark { flex: none; color: var(--rl-text-faint); }
+.ses-fold-name { flex: none; }
+.ses-tool-name { flex: none; max-width: 50%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 12px var(--font-mono); letter-spacing: normal; color: var(--rl-text-bright); }
+.ses-tool-called { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 12px var(--font-mono); letter-spacing: normal; color: var(--rl-text-faint); }
+/* Said in a word beside its mark, so a failed call is not known by its colour alone. */
+.ses-tool-failed, .ses-file-changed { flex: none; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; line-height: 16px; color: var(--rl-warning); }
+.ses-thinking { margin: 4px 0 6px 20px; padding: 2px 0 2px 12px; border-left: 2px solid var(--rl-line); font-size: 13px; line-height: 20px; color: var(--rl-text-dim); }
+.ses-thinking > p:first-child { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.ses-tool-body { margin: 4px 0 6px 20px; min-width: 0; }
+.ses-tool-part { margin: 8px 0 4px; font-size: 12px; line-height: 16px; font-weight: var(--fw-body); color: var(--rl-text-faint); }
+/* An output can be a whole file: it scrolls inside its own well, and the transcript keeps its length. */
+.ses-tool-body .setup-code { margin: 0; max-height: 420px; overflow-y: auto; }
+/* What the agent's own machinery put in: one quiet line. */
+.ses-note-line { margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; line-height: 18px; color: var(--rl-text-faint); }
+.ses-note-label { margin-right: 8px; font-weight: var(--fw-label); color: var(--rl-text-dim); }
+.ses-more { align-self: center; margin-top: 12px; }
+
+/* The Context tab: each file a session had loaded, on Setup's list of places. */
+.ses-context > .lib-reader-desc { margin-top: 0; }
+.ses-context > .lib-reader-note { margin-bottom: 0; }
+.ses-files { margin-top: 20px; gap: 14px; }
+.ses-file-more { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-top: 5px; }
+
+/* A model's prose as Markdown (sessions/Markdown.tsx). */
+.md { font-family: var(--font-content); line-height: 1.6; overflow-wrap: anywhere; }
+.md > :first-child { margin-top: 0; } .md > :last-child { margin-bottom: 0; }
+.md p { margin: 0 0 8px; text-wrap: pretty; } .md ul, .md ol { margin: 0 0 8px; padding-left: 20px; }
+/* Tailwind v4 preflight strips list markers app-wide; markdown lists must keep theirs. */
+.md ul { list-style: disc; } .md ol { list-style: decimal; }
+.md h1, .md h2, .md h3, .md h4 { margin: 12px 0 6px; font-weight: var(--fw-title); line-height: 1.3; }
+.md h1 { font-size: 18px; font-weight: var(--fw-strong); letter-spacing: -0.01em; } .md h2 { font-size: 15px; font-weight: var(--fw-strong); } .md h3 { font-size: 13px; color: var(--rl-text-bright); }
+.md code { font: 12px var(--font-mono); padding: 1px 4px; border-radius: var(--r-chip); background: var(--rl-card); }
+.md pre { margin: 6px 0 8px; padding: 10px 12px; border-radius: var(--r-ctl); background: var(--rl-card); overflow-x: auto; }
+.md pre code { padding: 0; background: none; }
+/* Fenced code is a panel: a header naming the fence's language beside a copy control, and a mono
+   body. Markdown.tsx builds the wrapper post-sanitize. */
+.md-code { margin: 6px 0 8px; border-radius: var(--r-ctl); corner-shape: squircle; background: var(--rl-card); overflow: hidden; }
+.md-code-head { display: flex; align-items: center; gap: 8px; min-height: 32px; padding: 0 8px 0 12px; }
+.md-code-lang { font: 11px var(--font-mono); color: var(--ink-3); }
+.md-code pre { margin: 0; padding: 2px 12px 12px; border-radius: 0; background: none; font-size: 12px; line-height: 1.65; color: var(--syn-fg); }
+.md-copy { position: relative; margin-left: auto; display: grid; place-items: center; width: 20px; height: 20px; border-radius: var(--r-chip); color: var(--rl-text-dim); }
+.md-copy::after { content: ""; position: absolute; inset: -6px; }
+.md-copy:hover { background: var(--rl-hover); color: var(--rl-text-bright); }
+.md-copy .copied-icon { color: var(--rl-success); }
+/* The copy glyph turns over into its tick in one box: a swap is a change of state, not of control. */
+.md-copy .copy-icon, .md-copy .copied-icon { grid-area: 1 / 1;
+  transition: opacity var(--dur-swap) var(--ease-out-strong), transform var(--dur-swap) var(--ease-out-strong), filter var(--dur-swap) var(--ease-out-strong); }
+.md-copy:not([data-copied]) .copied-icon, .md-copy[data-copied] .copy-icon { opacity: 0; transform: scale(.25); filter: blur(4px); }
+.md a { color: var(--accent-ink); font-weight: var(--fw-label); text-decoration: none; }
+.md a:hover { text-decoration: underline; text-underline-offset: 2px; }
+.md blockquote { margin: 0 0 8px; padding: 2px 10px; border-left: 3px solid var(--rl-line); color: var(--rl-text-dim); }
+/* A 1px low-alpha outline keeps an image's edge legible on any surface it lands on. */
+.md img { max-width: 100%; border-radius: var(--r-chip); outline: 1px solid var(--picture-outline); outline-offset: -1px; }
+.md-callout { margin: 8px 0; padding: 8px 12px; border-left: 3px solid var(--rl-line-strong); border-radius: 0 var(--r-chip) var(--r-chip) 0;
+  background: var(--inset); color: var(--rl-text-dim); }
+.md-callout > :last-child { margin-bottom: 0; }
+.md-callout-head { margin-bottom: 3px; font-size: 12px; font-weight: var(--fw-label); color: var(--rl-text-dim); }
+.md-callout[data-kind="tip"] { border-left-color: var(--green); } .md-callout[data-kind="tip"] .md-callout-head { color: var(--rl-success); }
+.md-callout[data-kind="warning"], .md-callout[data-kind="caution"] { border-left-color: var(--orange); }
+.md-callout[data-kind="warning"] .md-callout-head, .md-callout[data-kind="caution"] .md-callout-head { color: var(--rl-warning); }
+.md-callout[data-kind="important"] { border-left-color: var(--accent); } .md-callout[data-kind="important"] .md-callout-head { color: var(--accent-ink); }
+/* GFM task lists. The bullet is dropped for the checkbox — two markers on one row is one too many. */
+.md li:has(> input[type="checkbox"]) { list-style: none; margin-left: -20px; }
+.md input[type="checkbox"] { appearance: none; width: 12px; height: 12px; margin-right: 7px; border-radius: 3px; vertical-align: -1px;
+  box-shadow: inset 0 0 0 1.5px var(--rl-line-strong); }
+.md input[type="checkbox"]:checked { background: var(--rl-accent-fill) no-repeat center /8px 8px
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6L9 17l-5-5'/%3E%3C/svg%3E");
+  box-shadow: none; }
+/* Tables: rules between rows only, a quiet header, numbers right-aligned on tabular figures so a
+   column of them lines up on the decimal point. */
+.md table { width: 100%; margin: 0; border-collapse: collapse; font-size: 13px; }
+.md th, .md td { border: 0; border-bottom: var(--hairline-w) solid var(--line); padding: 6px 10px; text-align: left; vertical-align: top; }
+.md thead th { position: sticky; top: 0; font-size: 12px; font-weight: var(--fw-label);
+  color: var(--rl-text-faint); background: var(--rl-raised); }
+.md tbody tr:last-child td { border-bottom: 0; }
+.md tbody tr:hover { background: var(--rl-hover); }
+.md td[align="right"], .md th[align="right"] { text-align: right; font-variant-numeric: tabular-nums; }
+/* renderMarkdown wraps every table in this: a wide one scrolls itself rather than the transcript,
+   and it is the scroll container the sticky header above sticks to. */
+.md-scroll { margin: 6px 0 8px; max-height: 420px; overflow: auto; border-radius: var(--r-ctl); box-shadow: var(--shadow-hairline); }
+/* highlight.js token classes, mapped onto the theme's `--syn-*` roles. */
+.hljs { color: var(--syn-fg); }
+.hljs-comment, .hljs-quote { color: var(--syn-comment); font-style: italic; }
+.hljs-keyword, .hljs-selector-tag, .hljs-literal, .hljs-doctag, .hljs-name { color: var(--syn-keyword); }
+.hljs-string, .hljs-regexp, .hljs-addition, .hljs-attribute, .hljs-meta .hljs-string { color: var(--syn-string); }
+.hljs-number, .hljs-symbol, .hljs-bullet, .hljs-link, .hljs-template-variable, .hljs-variable { color: var(--syn-number); }
+.hljs-title, .hljs-section, .hljs-title.class_, .hljs-title.function_, .hljs-selector-id { color: var(--syn-title); font-weight: var(--fw-title); }
+.hljs-type, .hljs-built_in, .hljs-class .hljs-title, .hljs-params { color: var(--syn-type); }
+.hljs-attr, .hljs-selector-attr, .hljs-selector-class, .hljs-property { color: var(--syn-attr); }
+.hljs-meta, .hljs-comment .hljs-doctag { color: var(--syn-meta); }
+.hljs-deletion { color: var(--syn-deleted); }
+.hljs-emphasis { font-style: italic; } .hljs-strong { font-weight: var(--fw-strong); }
+
+/* ── Appearance: light or dark, and the accent ── */
+.look-card { display: flex; flex-direction: column; border-radius: var(--r-card); corner-shape: squircle; background: var(--rl-card); }
+.look-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 52px; padding: 10px 16px; }
+.look-row + .look-row { border-top: var(--hairline-w) solid var(--rl-line); }
+.look-name { font-size: 13px; line-height: 18px; color: var(--rl-text-bright); }
+/* About: each row a name and what it is, the folder as a path that wraps and is never cut. */
+.about { margin: 0; }
+.about-value { margin: 0; min-width: 0; font-size: 13px; line-height: 18px; color: var(--rl-text-dim); font-variant-numeric: tabular-nums; text-align: right; }
+.about-path { font: 12px/18px var(--font-mono); letter-spacing: normal; overflow-wrap: anywhere; }
+.look-accent { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.look-swatches { display: flex; align-items: center; gap: 8px; }
+.look-chosen { font-size: 12px; line-height: 16px; color: var(--rl-text-dim); font-variant-numeric: tabular-nums; }
+/* A swatch is 18px of its colour inside a 26px press target. Chosen, it wears a ring of the accent
+   with the ground showing between, as the Mac's own swatches do. The ring is set off by whole
+   pixels, so on a display with one pixel to the point its sides land where the swatch's do: set off
+   by a half, both sides round the same way and the ring sits to one side of the swatch. */
+.look-swatch { position: relative; flex: none; display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; cursor: pointer;
+  background: var(--swatch); box-shadow: inset 0 0 0 0.5px rgb(0 0 0 / 0.14);
+  transition: scale var(--dur-press) var(--ease-out-strong); }
+.look-swatch::after { content: ""; position: absolute; inset: -4px; border-radius: 50%; }
+.look-swatch:active { scale: 0.9; }
+.look-swatch[data-selected]::after, .look-swatch:has(input:focus-visible)::after { border: 2px solid var(--accent); }
+.look-swatch input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; padding: 0; border: none; opacity: 0; cursor: pointer; }
+/* The two swatches that are not a colour say what they are with a glyph: this Mac's display for
+   "Match the Mac", and the plus a colour of the person's own is added by. Chosen, the well is that
+   colour and the plus is gone. */
+.look-glyph { --swatch: var(--fill-1); color: var(--rl-text-bright); }
+.look-glyph > svg { display: block; }
+.look-well[data-selected] { --swatch: var(--accent); }
+.look-well[data-selected] > svg { display: none; }
+
+/* ── MCP servers and Skills: health, adding and removing ── */
+.lib-list-head > .btn { flex: none; display: inline-flex; align-items: center; gap: 5px; -webkit-app-region: no-drag; }
+/* The quiet line under the agents: what the last check found. */
+.setup-nav-health { margin: 10px 8px 0; font-size: 12px; line-height: 16px; color: var(--rl-text-faint); font-variant-numeric: tabular-nums; text-wrap: pretty; }
+/* A server's row: its picture, then the three lines every row has. */
+.lib-row.setup-server { flex-direction: row; align-items: flex-start; gap: 12px; }
+.setup-server-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.setup-icon { flex: none; display: grid; place-items: center; width: 32px; height: 32px; margin-top: 1px; border-radius: var(--r-chip); corner-shape: squircle;
+  background: var(--fill-3); color: var(--rl-text-dim); overflow: hidden; }
+.setup-icon > img { display: block; object-fit: contain; }
+/* The same picture beside the server's name where it is read, a size up. */
+.setup-title { display: flex; align-items: center; gap: 12px; }
+.setup-title > .setup-icon { width: 40px; height: 40px; margin: 0; border-radius: var(--r-ctl); }
+.setup-agents { flex: none; display: inline-flex; align-items: center; gap: 4px; }
+.setup-agent { display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; background: var(--fill-4); color: var(--rl-text-dim); }
+/* A dot and a word. The word carries the state for anyone the colour does not reach. */
+.setup-health { flex: none; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; line-height: 16px; color: var(--rl-text-dim); white-space: nowrap; }
+.setup-health::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--fill-1); }
+.setup-health[data-state="connected"]::before { background: var(--rl-success); }
+.setup-health[data-state="failed"]::before { background: var(--rl-danger); }
+.setup-health[data-state="needs-sign-in"]::before { background: var(--rl-warning); }
+.setup-place-health { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; margin-top: 4px; }
+.setup-place-health > .setup-health { font-size: 12px; }
+.setup-place-why { min-width: 0; font-size: 12px; line-height: 16px; color: var(--rl-text-faint); overflow-wrap: anywhere; }
+.setup-place-acts { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 6px 0 4px; }
+.setup-way .setup-places { gap: 14px; }
+.setup-acts { display: flex; gap: 8px; margin: 16px 0 24px; }
+.setup-issue { margin: 12px 0 0; }
+.setup-issue + .lib-props { margin-top: 20px; }
+.setup-refusal { color: var(--rl-danger); }
+
+/* The sheets. */
+.setup-sheet-line { margin: 0; font-size: 12px; line-height: 16px; color: var(--rl-text-dim); text-wrap: pretty; overflow-wrap: anywhere; }
+.setup-sheet-line.setup-refusal, .lib-ask-line.setup-refusal, .setup-offer-facts.setup-refusal, .setup-step-how.setup-refusal { color: var(--rl-danger); }
+.setup-sheet-heading { margin: 18px 0 8px; font-size: 12px; line-height: 16px; font-weight: var(--fw-title); color: var(--rl-text-dim); }
+.setup-from { font-family: var(--font-mono); font-size: 12px; letter-spacing: normal; color: var(--rl-text-bright); overflow-wrap: anywhere; }
+.setup-field select { width: 100%; }
+.setup-ways { display: grid; margin-bottom: 14px; }
+.setup-started { justify-self: start; align-self: flex-start; }
+.setup-describe { display: flex; align-items: center; gap: 10px; }
+.setup-describe > .setup-sheet-line { flex: 1; min-width: 0; }
+.setup-describe > :is(.btn, select) { flex: none; }
+.setup-drafted { margin: 14px 0 0; }
+.setup-add { margin-top: 14px; }
+.setup-add select { width: 100%; }
+.field input.setup-mono { font-family: var(--font-mono); font-size: 12px; letter-spacing: normal; }
+.setup-url { display: grid; grid-template-columns: minmax(0, 1fr) 96px; gap: 12px; }
+.setup-given { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 3fr) 28px; gap: 8px; align-items: center; }
+.setup-given-foot { display: flex; align-items: center; gap: 10px; margin: 2px 0 0; }
+.setup-given-foot > span { font-size: 12px; line-height: 16px; color: var(--rl-text-faint); text-wrap: pretty; }
+.setup-given-foot > .btn { flex: none; display: inline-flex; align-items: center; gap: 5px; }
+.setup-agents-pick { margin: 0; padding: 0; border: none; flex-direction: row; flex-wrap: wrap; gap: 6px 16px; }
+.setup-agents-pick > legend { padding: 0; margin-bottom: 5px; font-size: 12px; color: var(--rl-text-dim); }
+.setup-tick { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; line-height: 18px; color: var(--rl-text-bright); }
+/* What will be run or changed, per agent, before anything is. */
+.setup-step-list { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.setup-step { display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 4px 10px; align-items: baseline; }
+.setup-step-who { font-size: 13px; line-height: 18px; font-weight: var(--fw-title); color: var(--rl-text-bright); }
+.setup-step-how { font-size: 12px; line-height: 18px; color: var(--rl-text-dim); overflow-wrap: anywhere; }
+.setup-step > .setup-code { grid-column: 1 / -1; margin: 0; }
+.setup-step-outcome { grid-column: 1 / -1; font-size: 12px; line-height: 16px; color: var(--rl-danger); overflow-wrap: anywhere; }
+.setup-step-outcome[data-ok] { color: var(--rl-success); }
+
+.setup-look { display: flex; align-items: center; gap: 8px; }
+.setup-look > input { flex: 1; min-width: 0; }
+.setup-libraries, .setup-offers { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.setup-libraries + .setup-sheet-line, .form + .setup-sheet-line { margin-top: 12px; }
+.setup-library { width: 100%; display: flex; flex-direction: column; gap: 1px; padding: 9px 12px; border-radius: var(--r-row); corner-shape: squircle; background: var(--fill-4); text-align: left;
+  transition: background-color var(--dur-hover) ease; }
+.setup-library:hover:not(:disabled) { background: var(--fill-3); }
+.setup-library-name { font-size: 13px; line-height: 18px; font-weight: var(--fw-title); color: var(--rl-text-bright); }
+.setup-library-about { font-size: 12px; line-height: 16px; color: var(--rl-text-dim); text-wrap: pretty; }
+.setup-library-url { font: 11px/14px var(--font-mono); letter-spacing: normal; color: var(--rl-text-faint); overflow-wrap: anywhere; }
+.setup-offers { margin-top: 12px; }
+.setup-offers + .setup-sheet-line { margin-top: 12px; }
+.setup-offer { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: var(--r-row); corner-shape: squircle; background: var(--fill-4); }
+.setup-offer-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.setup-offer-name { flex: 1; min-width: 0; font-size: 13px; line-height: 18px; font-weight: var(--fw-title); color: var(--rl-text-bright); overflow-wrap: anywhere; }
+.setup-offer-line, .setup-offer-facts { margin: 0; padding-left: 21px; font-size: 12px; line-height: 16px; color: var(--rl-text-dim); text-wrap: pretty; overflow-wrap: anywhere; }
+.setup-offer-line[data-empty], .setup-offer-facts { color: var(--rl-text-faint); }
+.setup-offer-open { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; margin: 4px 0 0 17px; padding: 2px 4px; border-radius: var(--r-chip); font-size: 12px; line-height: 16px;
+  color: var(--rl-accent); }
+.setup-offer-open:hover { background: var(--rl-hover); }
+.setup-offer-text { margin: 6px 0 4px 21px; max-height: 260px; overflow-y: auto; background: var(--fill-4); }
+.setup-into { margin-right: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--rl-text-dim); }
+
+/* ── Health: measures of what agents carry and keep. The page is the Models page's column. ── */
+.health-pass { margin-bottom: 4px; padding: 10px 14px; border-radius: var(--r-ctl); corner-shape: squircle; background: var(--fill-4); }
+.health-note { margin-top: 8px; color: var(--rl-text-faint); }
+.health-sub { margin: 22px 0 8px; font-size: 12px; line-height: 16px; font-weight: var(--fw-body); color: var(--rl-text-faint); }
+.health-act { margin-top: 12px; }
+/* A name in a chart that goes somewhere: a link by the Mac's rule, so it takes the accent's ink. */
+.health-link { padding: 0; border: none; background: none; font: inherit; color: var(--accent-ink); text-align: left; cursor: pointer;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.health-link:hover { text-decoration: underline; }
+.health-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
+
+/* The charts. A bar's ends are rounded where its value ends, and its track is the lightest fill. */
+.hc-stacks, .hc-bars, .hc-legend { margin: 12px 0 0; padding: 0; list-style: none; }
+.hc-stacks { display: grid; grid-template-columns: max-content minmax(120px, 1fr) max-content; gap: 10px 12px; align-items: center; }
+.hc-stack-row { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; font-size: 13px; line-height: 18px; }
+.hc-stack-label { display: flex; align-items: center; gap: 8px; font-weight: var(--fw-title); color: var(--rl-text-bright); }
+.hc-stack { display: block; width: 100%; height: 12px; border-radius: 4px; overflow: hidden; }
+.hc-bars { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(80px, 2fr) max-content max-content; gap: 8px 12px; align-items: center; }
+.hc-bar-row { display: grid; grid-column: 1 / -1; grid-template-columns: subgrid; align-items: center; font-size: 13px; line-height: 18px; }
+.hc-bar-label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--rl-text-bright); }
+.hc-bar-track { height: 10px; border-radius: 4px; background: var(--fill-4); overflow: hidden; }
+.hc-bar-fill { display: block; height: 100%; min-width: 1px; border-radius: 0 4px 4px 0; }
+.hc-bar-value { font-variant-numeric: tabular-nums; color: var(--rl-text-bright); white-space: nowrap; text-align: right; }
+.hc-bar-caption { font-size: 12px; color: var(--rl-text-faint); white-space: nowrap; }
+.hc-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: 12px; line-height: 16px; color: var(--rl-text-dim); }
+.hc-legend li { display: flex; align-items: center; gap: 6px; }
+.hc-legend-swatch { width: 9px; height: 9px; border-radius: 2px; }
+
+/* ── Graph: how everything connects, drawn on the panel's own ground ── */
+/* The canvas is see-through, so the panel shows behind the drawing; what floats over it (the search,
+   the card) is the thicker material a sheet is, so it reads over any part of the graph. */
+.graph-panel { position: relative; flex: 1; min-width: 0; overflow: clip; }
+.graph-panel > .empty-state { position: absolute; inset: 0; }
+.graph-canvas, .graph-host, .graph-names { position: absolute; inset: 0; }
+.graph-host canvas { display: block; outline: none; }
+.graph-names { pointer-events: none; overflow: clip; }
+.graph-name { position: absolute; left: 0; top: -7px; max-width: 180px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+  font-size: 11px; line-height: 14px; color: var(--ink-2); text-shadow: 0 0 6px var(--rl-panel), 0 0 2px var(--rl-panel); transition: opacity 160ms linear; }
+.graph-name:is([data-kind="agent"], [data-kind="project"]) { font-size: 12px; font-weight: var(--fw-label); color: var(--ink); }
+.graph-name[data-dim] { opacity: .3; }
+
+.graph-dot { flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--ink-3);
+  /* The light a sphere in the drawing carries, so the legend's dot is that sphere. */
+  background-image: radial-gradient(circle at 35% 30%, rgb(255 255 255 / 0.55), transparent 60%); }
+.graph-dot[data-kind="agent"] { background-color: #E6E6EB; }
+.graph-dot[data-kind="project"] { background-color: #0A84FF; }
+.graph-dot[data-kind="file"] { background-color: #7D7AFF; }
+.graph-dot[data-kind="skill"] { background-color: #30D158; }
+.graph-dot[data-kind="mcp"] { background-color: #66D4CF; }
+.graph-dot:is([data-kind="session"], [data-kind="sessions"]) { background-color: #BF5AF2; }
+:root[data-mode="light"] .graph-dot[data-kind="agent"] { background-color: #3C3C43; }
+:root[data-mode="light"] .graph-dot[data-kind="project"] { background-color: #007AFF; }
+:root[data-mode="light"] .graph-dot[data-kind="file"] { background-color: #5856D6; }
+:root[data-mode="light"] .graph-dot[data-kind="skill"] { background-color: #28A745; }
+:root[data-mode="light"] .graph-dot[data-kind="mcp"] { background-color: #00A39B; }
+:root[data-mode="light"] .graph-dot:is([data-kind="session"], [data-kind="sessions"]) { background-color: #AF52DE; }
+
+.graph-find { position: absolute; top: 12px; left: 12px; width: 260px; display: flex; flex-direction: column; gap: 6px; }
+.graph-search { padding: 0; }
+.graph-search > svg { left: 12px; }
+.graph-found, .graph-card { background: var(--float-ground); backdrop-filter: blur(24px) saturate(1.6); box-shadow: 0 8px 28px rgb(0 0 0 / 0.18); corner-shape: squircle; }
+.graph-found { margin: 0; padding: 4px; list-style: none; border-radius: var(--r-row); animation: mac-fade 160ms var(--ease-fade) backwards; }
+.graph-found-none { padding: 6px 8px; font-size: 12px; color: var(--ink-3); }
+.graph-found-row { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 26px; padding: 2px 8px; border-radius: var(--r-chip); corner-shape: squircle; font-size: 13px; text-align: left; color: var(--ink); }
+.graph-found-row:hover { background: var(--hover); }
+.graph-found-name { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.graph-found-kind { flex: none; font-size: 11px; color: var(--ink-3); }
+.graph-note { position: absolute; left: 14px; bottom: 10px; margin: 0; font-size: 11px; line-height: 14px; color: var(--ink-3); }
+
+.graph-card { position: absolute; top: 12px; right: 12px; width: 300px; max-height: calc(100% - 24px); display: flex; flex-direction: column; gap: 6px; padding: 14px;
+  border-radius: var(--r-card); animation: graph-card-in 320ms var(--spring) backwards; }
+@keyframes graph-card-in { from { opacity: 0; translate: 12px 0; } }
+.graph-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.graph-card-kind { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 11px; line-height: 14px; color: var(--ink-3); }
+.graph-card-close { margin: -6px -6px -6px 0; }
+.graph-card-title { margin: 0; font-size: 15px; line-height: 20px; font-weight: var(--fw-label); color: var(--ink); overflow-wrap: anywhere; }
+.graph-card-detail { margin: 0; font-size: 12px; line-height: 16px; color: var(--ink-2); }
+.graph-card-links { flex: 0 1 auto; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin: 4px -8px 0; padding: 0 8px; }
+.graph-card-links ul { margin: 0 -8px; padding: 0; list-style: none; }
+.graph-card-heading { display: flex; justify-content: space-between; gap: 8px; margin: 0 0 2px; font-size: 11px; line-height: 14px; font-weight: var(--fw-label); color: var(--ink-3); }
+.graph-card-more { margin: 2px 0 0; font-size: 11px; line-height: 14px; color: var(--ink-3); }
+.graph-card-open { flex: none; align-self: flex-start; margin-top: 6px; }
+
+/* What each line means, under the switches: the name, how many are drawn, then the sentence. */
+.graph-lines { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 4px 10px 6px 8px; }
+.graph-lines dt { display: flex; justify-content: space-between; gap: 8px; font-size: 12px; line-height: 16px; font-weight: var(--fw-medium); color: var(--rl-text-dim); }
+.graph-lines dd { margin: 0; font-size: 11px; line-height: 14px; color: var(--rl-text-faint); }
+
+@media (prefers-reduced-motion: reduce) { .graph-card, .graph-found { animation: none; } }
+@media (prefers-reduced-transparency: reduce) { .graph-found, .graph-card { backdrop-filter: none; } }
+
+/* Favourites. The star in a row's head keeps its place whether it shows or not, so nothing beside it
+   moves when the pointer arrives. On a card it lies over the head's right end, which is kept clear for it. */
+.fav { flex: none; position: relative; display: grid; place-items: center; width: 16px; height: 16px; border-radius: 50%; color: var(--ink-3); opacity: 0;
+  -webkit-app-region: no-drag; transition: opacity var(--dur-hover) ease, color var(--dur-hover) ease, scale var(--dur-press) var(--ease-out-strong); }
+.fav::after { content: ""; position: absolute; inset: -6px; }
+:is(.lib-row, .lib-cards > li):hover .fav, .fav:focus-visible, .fav[aria-pressed="true"] { opacity: 1; }
+.fav:hover { color: var(--ink); }
+.fav:active { scale: 0.88; }
+.fav[aria-pressed="true"], .col-head .icon-btn.fav-bar[aria-pressed="true"] { color: var(--accent-ink); }
+:is(.fav, .fav-bar)[aria-pressed="true"] svg path { fill: currentColor; }
+.lib-cards > li { position: relative; }
+.lib-cards > li > .fav { position: absolute; top: 17px; right: 16px; }
+.lib-cards > li:hover > .fav { translate: 0 -1px; }
+.lib-cards .lib-card-head { padding-right: 24px; }
+/* The Favorites section: the grid's cards, in one scroller, under the kind of thing each is. */
+.fav-groups { flex: 1; min-height: 0; overflow-y: auto; display: flex; flex-direction: column; gap: 20px; padding: 4px 0 24px;
+  --fade-top-h: 12px; --fade-h: 34px; scroll-padding-block: 12px 34px; }
+.fav-group-name { margin: 0; padding: 0 16px 8px; font-size: 13px; line-height: 16px; font-weight: var(--fw-title); color: var(--rl-text-bright); }
+.fav-cards { flex: none; overflow: visible; padding-block: 0; }
+.fav-cards .lib-card-line[data-mono] { font-family: var(--font-mono); letter-spacing: normal; }
+
+/* ── The welcome a first launch opens on ──
+   It lies over the whole window on the window's own material: the app under it is not drawn until it
+   lifts. Every rule here is the settled state; what writes and arrives does so from a keyframe that
+   holds before it starts (`backwards`), so a press that ends the writing only has to drop the animations. */
+.about-welcome { margin-top: 12px; }
+.app { transition: opacity var(--dur-move) ease; }
+.app[inert] { opacity: 0; }
+.intro { position: fixed; inset: 0; z-index: 100; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 36px;
+  padding: 44px 32px 32px; outline: none; --intro-write: 2s; --intro-wait: 400ms; --intro-settled: calc(var(--intro-wait) + var(--intro-write) + 150ms); --intro-drop: 150px; }
+.intro-drag { position: absolute; inset: 0 0 auto; height: 44px; -webkit-app-region: drag; }
+.intro-word { flex: none; width: 340px; max-width: 100%; overflow: visible; }
+.intro-word path { fill: none; stroke: var(--ink); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; }
+.intro-about { display: flex; flex-direction: column; align-items: center; max-width: 540px; text-align: center; }
+.intro-icon { width: 64px; height: 64px; }
+.intro-line { margin: 18px 0 0; font-size: 22px; line-height: 28px; font-weight: 300; letter-spacing: -0.01em; color: var(--ink); text-wrap: balance; }
+.intro-facts { display: flex; flex-direction: column; gap: 6px; margin: 16px 0 0; padding: 0; list-style: none; font-size: 13px; line-height: 18px; color: var(--ink-2); }
+.intro-facts li { text-wrap: balance; }
+/* The one filled button, as a filled button in a head is: its own colour under the glass's light. */
+.btn.primary.intro-open { --btn-h: 36px; margin-top: 28px; padding: 0 22px; font-size: 14px;
+  background: var(--glass-sheen), var(--fill); box-shadow: var(--glass-edge), var(--glass-shadow); }
+.intro[data-leaving] { pointer-events: none; }
+/* The dash is the pen: it is on the stroke only while it writes, and the settled word is a plain line. */
+@keyframes intro-write { from { stroke-dasharray: 1 2; stroke-dashoffset: 1.02; } to { stroke-dasharray: 1 2; stroke-dashoffset: 0; } }
+@keyframes intro-settle { from { translate: 0 var(--intro-drop); } }
+@keyframes intro-arrive { from { opacity: 0; translate: 0 10px; visibility: hidden; } }
+@keyframes intro-lift { to { opacity: 0; translate: 0 -28px; } }
+@media (prefers-reduced-motion: no-preference) {
+  .intro-word { animation: intro-settle 700ms var(--spring) var(--intro-settled) backwards; }
+  .intro-word path { animation: intro-write var(--intro-write) cubic-bezier(0.45, 0, 0.35, 1) var(--intro-wait) backwards; }
+  .intro-about > * { animation: intro-arrive 600ms var(--spring) calc(var(--intro-settled) + 120ms + var(--nth, 0) * 90ms) backwards; }
+  .intro-about > :nth-child(2) { --nth: 1; }
+  .intro-about > :nth-child(3) { --nth: 2; }
+  .intro-about > :nth-child(4) { --nth: 3; }
+  .intro[data-written] :is(.intro-word, .intro-word path, .intro-about > *) { animation: none; }
+  .intro[data-leaving] { animation: intro-lift 480ms var(--ease-out-strong) forwards; }
+}
+@media (prefers-reduced-motion: reduce) { .app { transition: none; } }

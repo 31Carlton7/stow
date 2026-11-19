@@ -1,0 +1,240 @@
+/*
+ * This app's own look: a Mac window.
+ *
+ * The whole window is the system's material (the vibrancy the main process asks for), the sidebar
+ * sits bare on it, and what is read sits on one panel floating over it. Type is the system's, colours
+ * are the system's semantic ones, and every corner is continuous.
+ *
+ * Loaded after tokens.css and the component sheets, so the values here are the ones in force: the
+ * names are the ones the lifted rules already read.
+ */
+
+:root {
+  /* Type. The system face carries its own optical sizes and tracking, so no rule adds tracking of
+     its own except to a large title. */
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+  --font-sans: var(--font-ui);
+  --font-mono: ui-monospace, "SF Mono", Menlo, monospace;
+  --fw-body: 400; --fw-medium: 500; --fw-label: 500; --fw-title: 600; --fw-strong: 700;
+
+  /* Corners, all drawn as squircles. A squircle reads tighter than a circle of the same radius, so
+     these are a step larger than the round corner they stand for. */
+  --r-chip: 8px;
+  --r-ctl: 11px;
+  --r-row: 14px;
+  --r-card: 18px;
+  --r-panel: 16px;
+  --r-float: 22px;
+  --panel-inset: 8px;
+
+  /* Motion. One spring for things that move (critically damped: no overshoot), one for the few
+     things a press throws. */
+  --spring: var(--spring-smooth);
+  --spring-throw: linear(0, 0.007 1.2%, 0.03 2.5%, 0.118 5.2%, 0.44 12.4%, 0.6 15.9%, 0.737 19.5%, 0.845 23.1%, 0.925 26.8%, 0.98 30.6%, 1.012 34.6%, 1.03 39.6%, 1.033 45.3%, 1.004 68.6%, 1);
+  --dur-move: 320ms;
+
+  /* ── Dark ── */
+  --ink: rgb(255 255 255 / 0.92);
+  --ink-2: rgb(235 235 245 / 0.62);
+  --ink-3: rgb(235 235 245 / 0.38);
+  --line: rgb(255 255 255 / 0.08);
+  --line-strong: rgb(255 255 255 / 0.14);
+  --divider: rgb(255 255 255 / 0.09);
+  --mark: rgb(120 120 128 / 0.36);
+  --mark-strong: rgb(120 120 128 / 0.52);
+
+  /* The system's fills: what a control or a card is drawn with, over whatever is behind it. */
+  --fill-1: rgb(120 120 128 / 0.36);
+  --fill-2: rgb(120 120 128 / 0.28);
+  --fill-3: rgb(120 120 128 / 0.2);
+  --fill-4: rgb(120 120 128 / 0.13);
+  --inset: rgb(0 0 0 / 0.16);
+  --fill-bevel: inset 0 0.5px 0 rgb(255 255 255 / 0.22);
+
+  --rl-hover: rgb(255 255 255 / 0.06);
+  --rl-active: rgb(255 255 255 / 0.1);
+
+  /* The panel what is read sits on, and the reader's step up from the list beside it. */
+  --rl-panel: rgb(30 30 32 / 0.66);
+  --rl-raised: rgb(255 255 255 / 0.035);
+  --panel-ring: inset 0 0 0 0.5px rgb(255 255 255 / 0.1);
+  --panel-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.5), 0 8px 24px rgb(0 0 0 / 0.18);
+  /* A sheet or a menu: its own material, thick enough to read on over anything. */
+  --float-ground: rgb(44 44 46 / 0.86);
+
+  /* The accent. `--accent-base` is the one colour chosen: the Mac's own, one of its eight, or the
+     person's. The app sets it on the root; every shade below is made from it here, so any colour
+     works without a line of code.
+     A filled button's ground is the colour itself only while a white label can be read on it: a
+     lighter one is brought down to 0.62 of OKLCH's lightness. Past 0.8 (yellow) no deepening leaves
+     the colour itself, so it stays as chosen and the label goes dark. `--accent-is-pale` is that
+     switch: 1 past 0.8, else 0. */
+  --accent-base: #007aff;
+  --accent-is-pale: clamp(0, (l - 0.8) * 1000, 1);
+  --accent-fill-hover: oklch(from var(--accent-fill) calc(l + 0.045) c h);
+  --accent-fill-press: oklch(from var(--accent-fill) calc(l - 0.06) c h);
+  --accent-ink: oklch(from var(--accent-base) max(l, 0.74) c h);
+  --accent-tint: rgb(from var(--accent-base) r g b / 0.22);
+  --danger-fill: rgb(255 69 58);
+  --danger-fill-hover: rgb(255 92 82);
+  --danger-fill-press: rgb(224 52 42);
+  --green: rgb(48 209 88);
+  --green-tint: rgb(48 209 88 / 0.16);
+  --orange: rgb(255 159 10);
+  --orange-tint: rgb(255 159 10 / 0.16);
+  --red: rgb(255 105 97);
+  --red-tint: rgb(255 69 58 / 0.18);
+  --row-selected: rgb(from var(--accent-base) r g b / 0.24);
+  --switch-off: rgb(120 120 128 / 0.42);
+  --knob-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.08), 0 1px 1px rgb(0 0 0 / 0.16), 0 3px 6px rgb(0 0 0 / 0.2);
+  --seg-thumb: rgb(255 255 255 / 0.17);
+  --seg-thumb-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.06), 0 1px 2px rgb(0 0 0 / 0.24);
+
+  /* Glass: what a control that floats over content is made of. A tint thick enough to keep its label
+     readable over whatever passes under it, the blur behind it, the light its edges and face catch,
+     and the shadow that lifts it.
+     The blur is made solid (`#glass-solid`, index.html) before anything else is done to it. Without
+     that the words under a control stay sharp: the panel is see-through, so its blurred copy is
+     too, and the copy is laid over the sharp original, not in place of it. */
+  --glass-tint: rgb(84 84 92 / 0.42);
+  --glass-tint-hover: rgb(108 108 118 / 0.5);
+  --glass-tint-press: rgb(130 130 140 / 0.58);
+  --glass-blur: blur(24px) url(#glass-solid) saturate(190%) brightness(1.12);
+  --glass-sheen: linear-gradient(to bottom, rgb(255 255 255 / 0.16), rgb(255 255 255 / 0.02) 46%, rgb(255 255 255 / 0.07));
+  --glass-edge: inset 0 0.5px 0 rgb(255 255 255 / 0.42), inset 0 -0.5px 0 rgb(255 255 255 / 0.14), inset 0 0 0 0.5px rgb(255 255 255 / 0.1), inset 0 -3px 5px -3px rgb(0 0 0 / 0.3);
+  --glass-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.36), 0 1px 2px rgb(0 0 0 / 0.22), 0 6px 16px rgb(0 0 0 / 0.2);
+
+  /* A card's glass: the light a control's glass catches, a good deal fainter, and no blur, since
+     nothing passes behind a card. Its face, its edge, and the shadow that lifts it, at rest and
+     under the pointer. */
+  --card-glass: linear-gradient(to bottom, rgb(255 255 255 / 0.075), rgb(255 255 255 / 0.03) 60%, rgb(255 255 255 / 0.045));
+  --card-glass-hover: linear-gradient(to bottom, rgb(255 255 255 / 0.11), rgb(255 255 255 / 0.055) 60%, rgb(255 255 255 / 0.07));
+  --card-glass-edge: inset 0 0.5px 0 rgb(255 255 255 / 0.2), inset 0 -0.5px 0 rgb(255 255 255 / 0.06), inset 0 0 0 0.5px rgb(255 255 255 / 0.06);
+  --card-glass-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.28), 0 1px 2px rgb(0 0 0 / 0.14), 0 5px 14px rgb(0 0 0 / 0.12);
+  --card-glass-shadow-hover: 0 0 0 0.5px rgb(0 0 0 / 0.3), 0 2px 4px rgb(0 0 0 / 0.16), 0 12px 24px rgb(0 0 0 / 0.2);
+}
+
+:root[data-mode="light"] {
+  --ink: rgb(0 0 0 / 0.88);
+  --ink-2: rgb(60 60 67 / 0.66);
+  --ink-3: rgb(60 60 67 / 0.42);
+  --line: rgb(60 60 67 / 0.12);
+  --line-strong: rgb(60 60 67 / 0.2);
+  --divider: rgb(60 60 67 / 0.13);
+  --mark: rgb(120 120 128 / 0.28);
+  --mark-strong: rgb(120 120 128 / 0.44);
+
+  --fill-1: rgb(120 120 128 / 0.22);
+  --fill-2: rgb(120 120 128 / 0.17);
+  --fill-3: rgb(118 118 128 / 0.12);
+  --fill-4: rgb(116 116 128 / 0.08);
+  --inset: rgb(0 0 0 / 0.035);
+  --fill-bevel: inset 0 0.5px 0 rgb(255 255 255 / 0.3);
+
+  --rl-hover: rgb(0 0 0 / 0.045);
+  --rl-active: rgb(0 0 0 / 0.08);
+
+  --rl-panel: rgb(255 255 255 / 0.62);
+  --rl-raised: rgb(255 255 255 / 0.62);
+  --panel-ring: inset 0 0 0 0.5px rgb(255 255 255 / 0.6);
+  --panel-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.1), 0 6px 20px rgb(0 0 0 / 0.07);
+  --float-ground: rgb(246 246 248 / 0.9);
+
+  /* On the light face the accent's ink goes down where the dark face's goes up, hover deepens, and
+     the tints are fainter. The fill and its label are the same on both, and are said below. */
+  --accent-ink: oklch(from var(--accent-base) min(l, 0.52) c h);
+  --accent-tint: rgb(from var(--accent-base) r g b / 0.14);
+  --accent-fill-hover: oklch(from var(--accent-fill) calc(l - 0.035) c h);
+  --accent-fill-press: oklch(from var(--accent-fill) calc(l - 0.07) c h);
+  --danger-fill: rgb(255 59 48);
+  --danger-fill-hover: rgb(236 48 38);
+  --danger-fill-press: rgb(214 38 30);
+  /* The system's green, orange and red are for fills. As text on a light ground they are too faint,
+     so the ink of each is its darker accessible form. */
+  --green: rgb(36 138 61);
+  --green-tint: rgb(52 199 89 / 0.16);
+  --orange: rgb(201 92 0);
+  --orange-tint: rgb(255 149 0 / 0.16);
+  --red: rgb(215 0 21);
+  --red-tint: rgb(255 59 48 / 0.12);
+  --row-selected: rgb(from var(--accent-base) r g b / 0.14);
+  --switch-off: rgb(120 120 128 / 0.26);
+  --knob-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.06), 0 1px 1px rgb(0 0 0 / 0.1), 0 3px 6px rgb(0 0 0 / 0.14);
+  --seg-thumb: rgb(255 255 255);
+  --seg-thumb-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.06), 0 1px 3px rgb(0 0 0 / 0.12);
+
+  --glass-tint: rgb(255 255 255 / 0.5);
+  --glass-tint-hover: rgb(255 255 255 / 0.7);
+  --glass-tint-press: rgb(236 236 240 / 0.8);
+  --glass-sheen: linear-gradient(to bottom, rgb(255 255 255 / 0.6), rgb(255 255 255 / 0) 46%, rgb(255 255 255 / 0.22));
+  --glass-edge: inset 0 0.5px 0 rgb(255 255 255 / 0.95), inset 0 0 0 0.5px rgb(255 255 255 / 0.55), inset 0 -3px 5px -3px rgb(0 0 0 / 0.07);
+  --glass-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.07), 0 1px 2px rgb(0 0 0 / 0.06), 0 6px 16px rgb(0 0 0 / 0.09);
+
+  --card-glass: linear-gradient(to bottom, rgb(255 255 255 / 0.8), rgb(255 255 255 / 0.5) 60%, rgb(255 255 255 / 0.6));
+  --card-glass-hover: linear-gradient(to bottom, rgb(255 255 255 / 0.96), rgb(255 255 255 / 0.74) 60%, rgb(255 255 255 / 0.82));
+  --card-glass-edge: inset 0 0.5px 0 rgb(255 255 255 / 0.95), inset 0 0 0 0.5px rgb(255 255 255 / 0.6);
+  --card-glass-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.05), 0 1px 2px rgb(0 0 0 / 0.04), 0 5px 14px rgb(0 0 0 / 0.05);
+  --card-glass-shadow-hover: 0 0 0 0.5px rgb(0 0 0 / 0.06), 0 2px 4px rgb(0 0 0 / 0.05), 0 12px 24px rgb(0 0 0 / 0.09);
+}
+
+/* Names the lifted rules read that are only other names here. Said for both faces at once, and with
+   the light face's own selector, because the lifted sheets give several of them a light value. */
+:root, :root[data-mode="light"] {
+  --field: var(--fill-3);
+  --hover: var(--fill-2);
+  --hover-2: var(--fill-1);
+  --surface: var(--fill-3);
+  --btn-ring: transparent;
+  --rl-card: var(--fill-4);
+  --rl-card-hover: var(--fill-3);
+  --rl-frame: var(--fill-4);
+  --rl-frame-raised: var(--fill-4);
+  --rl-tile: var(--fill-4);
+  --rl-tile-hover: var(--fill-3);
+  --sidebar-ground: transparent;
+  --accent: var(--accent-base);
+  --accent-fill: oklch(from var(--accent-base) calc(min(l, 0.62) + var(--accent-is-pale) * (l - min(l, 0.62))) c h);
+  --on-accent: oklch(from var(--accent-base) calc(1 - var(--accent-is-pale) * 0.76) 0 0);
+  --rl-accent-contrast: var(--on-accent);
+}
+
+/* Someone who has asked the Mac for less transparency gets solid grounds; for more contrast, lines
+   that can be seen. */
+@media (prefers-reduced-transparency: reduce) {
+  :root { --rl-panel: rgb(30 30 32); --sidebar-ground: rgb(22 22 24); --float-ground: rgb(44 44 46); }
+  :root[data-mode="light"] { --rl-panel: rgb(255 255 255); --sidebar-ground: rgb(236 236 240); --float-ground: rgb(246 246 248); }
+  :root { --glass-tint: rgb(58 58 62); --glass-tint-hover: rgb(72 72 76); --glass-tint-press: rgb(86 86 90); --glass-blur: none; }
+  :root[data-mode="light"] { --glass-tint: rgb(250 250 252); --glass-tint-hover: rgb(240 240 244); --glass-tint-press: rgb(228 228 233); }
+}
+@media (prefers-contrast: more) {
+  :root { --line: rgb(255 255 255 / 0.3); --line-strong: rgb(255 255 255 / 0.45); --ink-2: rgb(235 235 245 / 0.8); --ink-3: rgb(235 235 245 / 0.62); }
+  :root[data-mode="light"] { --line: rgb(0 0 0 / 0.35); --line-strong: rgb(0 0 0 / 0.5); --ink-2: rgb(0 0 0 / 0.75); --ink-3: rgb(0 0 0 / 0.6); }
+  :root, :root[data-mode="light"] { --glass-edge: inset 0 0 0 1px var(--line-strong); --card-glass-edge: inset 0 0 0 1px var(--line-strong); }
+}
+
+/* ── Arrivals ──
+   A column, a page and a row each come in once, a short way, on the spring. Nothing loops and
+   nothing waits on an animation: every one of these is over before a second press could land. */
+@keyframes mac-rise { from { opacity: 0; translate: 0 6px; } }
+@keyframes mac-fade { from { opacity: 0; } }
+@keyframes mac-row { from { opacity: 0; translate: 0 4px; } }
+/* Glass does not fade in: it comes into focus, growing the last of the way as it does. */
+@keyframes glass-arrive { from { opacity: 0; scale: 0.9; filter: blur(6px); } }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* `backwards`, not `both`: an arrival that is held after it ends keeps its own layer, and glass
+     over that layer blurs nothing of it. */
+  .main > .col { animation: mac-fade 200ms var(--ease-fade) backwards; }
+  .lib-reader, .models-page { animation: mac-rise var(--dur-move) var(--spring) backwards; }
+  .sidebar .sb-list { animation: mac-fade 180ms var(--ease-fade) both; }
+  /* The first rows of a list arrive one after another; past the twelfth they are simply there. */
+  .lib-rows > :is(.lib-row, .rev-group, .rev-applied) { animation: mac-row 300ms var(--spring) both; }
+  .lib-rows > :nth-child(2) { animation-delay: 16ms; } .lib-rows > :nth-child(3) { animation-delay: 32ms; }
+  .lib-rows > :nth-child(4) { animation-delay: 48ms; } .lib-rows > :nth-child(5) { animation-delay: 64ms; }
+  .lib-rows > :nth-child(6) { animation-delay: 80ms; } .lib-rows > :nth-child(7) { animation-delay: 96ms; }
+  .lib-rows > :nth-child(8) { animation-delay: 112ms; } .lib-rows > :nth-child(9) { animation-delay: 128ms; }
+  .lib-rows > :nth-child(10) { animation-delay: 144ms; } .lib-rows > :nth-child(11) { animation-delay: 160ms; }
+  .lib-rows > :nth-child(12) { animation-delay: 176ms; }
+  .fd-file, .rev-reading, .models-card { animation: mac-rise var(--dur-move) var(--spring) both; }
+  :is(.seg, .col-head :is(.btn, .icon-btn)) { animation: glass-arrive 260ms var(--spring) backwards; }
+}

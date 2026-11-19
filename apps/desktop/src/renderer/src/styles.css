@@ -1,0 +1,793 @@
+/* Tracking is a sans-serif correction, and Chromium switches all ligatures off for any run with
+   non-zero tracking, so every surface that reads --font-mono gives it up. */
+code, pre, kbd { letter-spacing: normal; }
+
+/* ═══ THE BRIDGE (Plan 9 W1) ══════════════════════════════════════════════════
+   Every legacy `--rl-*` token, redefined in terms of the BUI ramps from
+   theme/tokens.css. The BUI variables flip themselves on `data-mode`, so one
+   mapping serves both themes unless noted (per-mode overrides sit in the
+   `:root[data-mode="light"]` block that follows). applyTheme() writes ONLY
+   `--rl-space` and `data-mode` now — everything else is static CSS truth. */
+:root {
+  /* accent: BUI's blue condiment replaces the ink accent — focus rings, active ticks, links, carets,
+     progress all take --accent. A control FILLED with it that carries a word or a mark — primary
+     buttons, send, a checked box — takes --rl-accent-fill instead, the accent solved for its label
+     (packages/ui/src/accent-fill.ts): white on Realm's own blue read 2.9 : 1, on the fill 5.0. */
+  --rl-accent: var(--accent);                    /* BUI --accent */
+  --rl-accent-contrast: oklch(1 0 0);            /* the label on --rl-accent-fill; a theme may make it dark */
+  --rl-accent-fill: var(--accent-fill);
+  /* Hover and press move the fill AWAY from its label — deeper under white, brighter under a dark
+     label — so neither state reads worse than rest. Under white that is the AppKit default button's
+     press: darker, the control pushed into the page. */
+  --rl-accent-fill-hover: var(--accent-fill-hover);
+  --rl-accent-press: var(--accent-fill-press);
+  /* The destructive fill, the same treatment in red: white on Realm's dark red read 3.4 : 1. */
+  --rl-danger-contrast: oklch(1 0 0);
+  --rl-danger-fill: var(--danger-fill);
+  --rl-danger-fill-hover: var(--danger-fill-hover);
+  --rl-danger-press: var(--danger-fill-press);
+  --rl-space: #7c6cff;                           /* runtime: applyTheme() overwrites per space */
+  /* type (Ara §1 revised): Inter is the UI face (BUI layout.tsx stacks); JetBrains Mono
+     survives in terminals, diffs, code and kbd. */
+  --font-ui: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  /* Prose — messages, markdown, the documents editor — reads in the UI face until Settings ▸
+     Appearance names another. The two scales multiply every text size (`theme/text-scale.ts`); both
+     are written by applyTheme, and 1 is the stylesheet exactly as drawn. */
+  --font-content: var(--font-ui);
+  --ui-text-scale: 1;
+  --code-text-scale: 1;
+  /* surface ladder: frame → panel → raised keeps its meaning, stepped on BUI's ramp */
+  --rl-frame: var(--page);                       /* BUI --page: window ground + sunken wells */
+  --rl-panel: var(--canvas);                     /* BUI --canvas: the working ground */
+  --rl-raised: var(--surface);                   /* BUI --surface: cards, menus, sheets, composer */
+  /* --rl-frame's step where the ground is --rl-raised rather than the canvas: a card set INTO a
+     raised surface (the Files dock's cards), and the same card under the pointer. Dark's frame step
+     already reads there; light's does not, so the light face sets its own pair below. */
+  --rl-frame-raised: var(--page);
+  --rl-frame-raised-hover: var(--rl-hover);
+  /* A card in Codex's grammar, measured off its window: a step ABOVE the ground it stands on — where
+     --rl-frame is a well below it. An overlay rather than a colour, because the ground under a page is
+     the pane's translucent canvas: the card has to lift whatever that came to, on any desktop.
+     The fill is the boundary, and nothing is drawn round it. Codex rings its card a rung lighter than
+     both sides (page 41, card 47, rim 57); here a rim like that measured +12 levels over a card that
+     stood +9 over the ground and read as a border fighting the card (the owner, 10-18), and softened
+     to +4 it still read as one (10-19: "I don't like having borders"). The card's lift (`--card-lift`)
+     is what it has instead. A divider between a card's rows, or the edge of a field
+     written on one, is a line and keeps the line's weight (`--rl-line`). The light face sets its own
+     pair below — a white card on the grey ground. */
+  --rl-card: var(--overlay-lighten-100);
+  --rl-card-hover: var(--overlay-lighten-200);
+  /* A file's tile, which Codex raises further than a settings card — its tiles are sixteen levels
+     over the page where its cards are six — because a tile is an object you pick up, not a group of
+     controls you read. */
+  --rl-tile: var(--overlay-lighten-200);
+  --rl-tile-hover: var(--overlay-lighten-300);
+  --rl-tile-press: var(--overlay-lighten-400);
+  /* What an OBJECT rests on — a file's tile and its square in a row, a saved turn, a file on a message
+     or in the prompter, and the device's toolbar: one surface for all of them (the owner, 10-05, of
+     the toolbar: "That should be the shadow and border used for any library item"), and since 10-19
+     ("I don't like having borders") with no edge drawn round it. Cards lost their lift on 11-15; an
+     object keeps it (`--object-lift`). Named once for all of them, so the toolbar pointed at and the
+     files it was pointed at for cannot drift apart; `styles.test.ts` holds each to it. */
+  --rl-object-shadow: var(--object-lift);
+  /* …and the lift as a filter, for a surface the worklet paints inside a clip of its own (the
+     prompter's file well), where a box-shadow would trace the square border box. */
+  --rl-object-lift-filter: var(--shadow-card-lift-filter);
+  /* borders: BUI hairlines are solid and crisp, not alpha — hairline = line now */
+  --rl-line: var(--line);                        /* BUI --line */
+  --rl-line-strong: var(--line-strong);          /* BUI --line-strong */
+  --rl-divider: var(--divider);                  /* BUI --divider: the pane seam, at rest */
+  --rl-divider-hover: var(--divider-hover);      /* BUI --divider-hover: and under the pointer */
+  --rl-hairline: var(--line);                    /* BUI --line (the old 75% alpha derivation is gone) */
+  /* translucent interaction fills: kept alpha (BUI's opaque --hover only reads on its own
+     ground; these land on every surface incl. the translucent sidebar). Light overrides below. */
+  --rl-hover: oklch(1 0 0 / 0.06);
+  --rl-active: oklch(1 0 0 / 0.09);
+  /* The edge on a picture — an image in prose, a page, a thumbnail, an avatar: white on dark and
+     black on light, inside the picture, so a screenshot on a ground of its own tone still has an
+     edge. */
+  --picture-outline: oklch(1 0 0 / 0.1);
+  /* ink ramp */
+  --rl-text-bright: var(--ink);                  /* BUI --ink */
+  --rl-text-dim: var(--ink-2);                   /* BUI --ink-2 */
+  --rl-text-faint: var(--ink-3);                 /* BUI --ink-3 */
+  /* semantic: colour stays a condiment — state only, never chrome */
+  --rl-danger: var(--red);                       /* BUI --red */
+  --rl-success: var(--green);                    /* BUI --green */
+  --rl-warning: var(--orange);                   /* BUI --orange */
+  /* floating surfaces compose `var(--rl-edge), var(--rl-shadow)` — together they equal BUI's
+     --shadow-overlay: the hairline ring half and the layered-shadow half, split so the few
+     places using --rl-edge alone still get the BUI hairline ring. Light override below. */
+  --rl-edge: var(--shadow-hairline);             /* BUI --shadow-hairline (0 0 0 1px line) */
+  --rl-shadow: 0 8px 28px oklch(0 0 0 / 0.34);   /* BUI dark --shadow-overlay, shadow half */
+  /* radii: tembo's ladder — tick 2, chip 6, control 8, card 12, window 16 */
+  --r-sm: 2px;                                   /* --radius-sm: ticks, rails, code marks */
+  /* Raised a rung each. A superellipse reads visually SMALLER than the arc it replaces at the same
+     radius, so a control keeping its old number would have looked squarer after the change, not
+     rounder — the ladder had to move with the corner shape. Everything below is concentric off
+     these two, so nothing had to be re-tuned per rule. */
+  /* Raised again with the control corner. Every button and selectable row in the app is on the
+     app's curve now, and the two rungs below are what a control whose height is set by its CONTENT
+     gets — the primitives that know their own height (.btn, .search, .palette-opt…) take
+     `height × --sq-ratio-ctl` instead. 13 IS that formula at the 32px a padded row lands on. */
+  --r-chip: 10px;                                /* --radius-chip */
+  --r-ctl: 13px;                                 /* --radius-control */
+  --r-row: 12px;                                 /* --radius-card (rows keep card rounding) */
+  --r-panel: 12px;                               /* --radius-card: menus, pickers, permission card */
+  --r-float: 16px;                               /* --radius-window: composer, sheets, palette */
+  --r-pill: 999px;                               /* --radius-pill */
+  --hit-min: 40px;                               /* the smallest desktop press target (design.md) */
+  /* The column's resting width. */
+  --sidebar-w: 280px;
+  /* §6 easings — identical curves to BUI's @theme; --ease stays as the legacy alias. */
+  --ease-out-strong: cubic-bezier(.23,1,.32,1);
+  --ease-in-out-strong: cubic-bezier(.77,0,.175,1);
+  --ease: var(--ease-out-strong);
+  /* The weight ladder, from tembo: 450 is "medium", 560 is the one title weight.
+     Named rather than written per rule, so the ladder stays a ladder — the old
+     500/550/600/650 spread had two rungs a reader could not tell apart.
+     Every rung carries the same --fw-shift, which is how the UI font-weight preference reaches the
+     whole app from one place: an OFFSET, so the four rungs stay four rungs. Absolute weights from a
+     dropdown would flatten a label and a title into the same number on the way to making both
+     heavier. applyTheme() writes the shift; 0 here is what a renderer that never ran it gets. */
+  --fw-shift: 0;
+  --fw-body: calc(400 + var(--fw-shift));
+  --fw-medium: calc(450 + var(--fw-shift)); --fw-label: calc(500 + var(--fw-shift));
+  --fw-title: calc(560 + var(--fw-shift)); --fw-strong: calc(600 + var(--fw-shift));
+}
+/* The per-mode residue: the tokens whose dark/light values do not flow from a BUI var. */
+:root[data-mode="light"] {
+  --rl-hover: oklch(0 0 0 / 0.05);
+  --rl-active: oklch(0 0 0 / 0.07);
+  --picture-outline: oklch(0 0 0 / 0.1);
+  /* A card set into the raised surface. On this face --surface is white and --page one rung under
+     it, which measured 1.04:1 — a card with no edge — so the value is set by measurement rather
+     than by rung: 1.16:1 on white against dark's 1.15, with the --inset field inside the card and
+     the well inside that each keeping dark's 1.09 step. No BUI rung sits there: --canvas comes to
+     1.12, and --hover-2 is an interaction state. The hover goes one step deeper again, so the card
+     still answers the pointer at least as clearly as it did on the paler fill. */
+  --rl-frame-raised: oklch(0.95 0.002 247.85);
+  --rl-frame-raised-hover: oklch(0.915 0.003 247.86);
+  /* A card is its fill and nothing else (11-15), and this face's paper is white or a hair under it,
+     so a white card had no step left to stand on and read only by its lift. It goes the other way: a
+     step UNDER the paper, toward the ink, as grey grouped boxes sit on a light window (System
+     Settings). 7% of the ink measured 239 on Codex's 255 paper, live: 1.15:1, the dark card's step. Of
+     the paper and the ink rather than a fixed grey, so a tinted light theme keeps its hue. The hover
+     goes one step deeper, and an object's tile shares the card's fill and keeps its own lift. */
+  --rl-card: color-mix(in srgb, var(--canvas) 93%, var(--ink));
+  --rl-card-hover: color-mix(in srgb, var(--canvas) 89%, var(--ink));
+  --rl-tile: var(--rl-card);
+  --rl-tile-hover: var(--rl-card-hover);
+  --rl-tile-press: color-mix(in srgb, var(--canvas) 86%, var(--ink));
+  --rl-shadow: var(--shadow-lg);                 /* shadow-plugin's smooth lg stack (BUI light --shadow-overlay, shadow half) */
+}
+* { box-sizing: border-box; }
+/* A window-drag region is the box a rule names, and none of what it holds. Electron 45's Chromium made
+   `-webkit-app-region` inherited where Electron 37's did not (measured: a span in a drag box computes
+   `none` in Chromium 138 and `drag` in 156), and Electron lays every region down in document order —
+   so each child of a drag box laid its own drag rect AFTER the holes its controls had punched. The
+   sidebar's shade (`.sidebar-shade`), last in the column and over all of it, filled every hole back
+   in: in 2.5.0 no row, rail item, field or Back below the column's head took a real click, windowed or full
+   screen, while CDP's clicks, which never meet the OS's regions, still landed. This puts back the rule
+   the stylesheet was written to: a box is a region only where a rule says so. */
+*, ::before, ::after { -webkit-app-region: initial; }
+/* 14/20 rather than 14/1.5: tembo pairs every type step with an explicit line
+   height, and 21px line boxes are what left Realm's chrome sitting a hair
+   looser than the references it gets measured against. */
+html, body, #root { height: 100%; margin: 0; color: var(--rl-text-bright); font: var(--fw-body) 13px/18px var(--font-ui); -webkit-font-smoothing: antialiased; }
+/* §5 vibrancy: html/body/#root/.app stay transparent so the macOS material shows through the
+   sidebar column; .main (and every pane) paints opaque --rl-panel, so text there renders on a solid
+   ground. On non-mac the BrowserWindow keeps its opaque backgroundColor and this composes to the
+   old dark frame. */
+html, body { background: transparent; }
+button { font: inherit; color: inherit; background: none; border: none; padding: 0; }
+/* The hand over everything a click acts on — the owner's call (10-05: "use cursor pointer for buttons
+   and wherever it makes sense"), which gives up the Mac's arrow over controls on purpose. ONE rule, by
+   what an element IS — its tag or its role — so a control written tomorrow points the same way with no
+   rule of its own, and `:where` holds it at no specificity, so the few things a press means something
+   else on (a drag handle's grab, a divider's resize, a picture's zoom) say so in their own rule and
+   win. A label points only round a box or a radio, where a click on its words is a click on the
+   control; round a text field it is the field's caption. */
+:where(button, a[href], summary, select, [role="button"], [role="link"], [role="tab"], [role="menuitem"],
+  [role="menuitemradio"], [role="menuitemcheckbox"], [role="option"], [role="switch"], [role="checkbox"], [role="radio"], [role="slider"],
+  input:is([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="button"], [type="submit"], [type="reset"]),
+  label:has(input:is([type="checkbox"], [type="radio"]))) { cursor: pointer; }
+/* …and the arrow wherever a click does nothing: a control that is off, the words beside one, and
+   everything in a fieldset that is. */
+:where(:disabled, [aria-disabled="true"], label:has(input:disabled)) { cursor: default; }
+/* A field takes the I-beam wherever it stands. `cursor` inherits, so a rename field inside a sidebar
+   row that points, or a search inside a label, would point too. */
+:where(input:not([type="checkbox"], [type="radio"], [type="range"], [type="color"], [type="file"], [type="button"], [type="submit"], [type="reset"], [type="image"]),
+  textarea, [contenteditable="true"]) { cursor: text; }
+/* Chrome is not text. A double-click on a heading, a card's title or a status line selects its words in
+   a browser and does nothing in an AppKit window, where only a text view selects; and ⌘A sweeping the
+   whole interface blue is the same tell at full size. So nothing selects until it is named as content
+   below — a header, a chip or a page of settings written tomorrow is chrome without a rule of its
+   own. The images and glyphs chrome is drawn with do not lift off as drag ghosts either. */
+body { -webkit-user-select: none; user-select: none; }
+.md, .cm-editor, .ProseMirror, [data-selectable] { -webkit-user-select: text; user-select: text; }
+/* A control is chrome wherever it stands, content included — a code block's copy button, a callout's
+   name, a message's retry. */
+:is(button, [role="button"], [role="tab"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"],
+  [role="option"], [role="switch"], label, summary, .sidebar) {
+  -webkit-user-select: none; user-select: none; }
+/* A field inside one of those (a label wrapping its input, the sidebar's rename) is still a field. */
+:is(input, textarea, [contenteditable="true"]) { -webkit-user-select: text; user-select: text; }
+/* …and so is code. A path, a command or a branch printed in a settings row or the sidebar is the one
+   piece of chrome text a person reaches for to copy, the way a selectable NSTextField in an inspector
+   is. Not inside a control, where a drag is a press. */
+:is(code, pre):not(:is(button, [role="button"], [role^="menuitem"], [role="tab"]) *) { -webkit-user-select: text; user-select: text; }
+:is(button, [role="button"], [role="menuitem"], .sidebar) :is(img, svg) { -webkit-user-drag: none; }
+button:disabled { cursor: default; opacity: .45; }
+input, select, textarea { font: inherit; color: inherit; }
+kbd { font: 11px var(--font-mono); }
+.muted { color: var(--rl-text-dim); }
+/* The two small steps of tembo's type scale, each with the tracking that step
+   asks for. Tracking is a function of SIZE, so it cannot simply be inherited
+   from body: small text wants roughly twice the negative tracking body does. */
+.t-sm { font-size: 13px; line-height: 16px; }
+.t-xs { font-size: 11px; line-height: 14px; }
+/* One title ramp — one weight, one tracking, whatever the size (tembo's `text-title-*`). */
+.t-title { font-weight: var(--fw-title); }
+:focus-visible { outline: 2px solid var(--rl-accent); outline-offset: 1px; }
+/* The ring lands the way AppKit's does: it arrives as a wider, clear halo and draws in onto the
+   control, so the eye goes to where focus went instead of hunting for a ring that was simply there.
+   Only `from` is written, so a control that sets its own offset closes onto its own. Scoped to
+   controls, because `animation` is one property: on a focused sheet or pane it would replace that
+   surface's own entrance. */
+:is(button, a, input, select, textarea, summary, [role="button"], [role="tab"], [role="option"],
+  [role^="menuitem"], [role="switch"]):focus-visible { animation: rl-focus-ring var(--dur-slow) var(--spring-smooth); }
+@keyframes rl-focus-ring { from { outline-color: transparent; outline-offset: 6px; } }
+
+/* ── The shell: the sidebar over the window's material, and two opaque columns ── */
+/* Clipped at the window's own edges: `clip`, not `hidden`, so it makes no scroller. */
+.app { display: flex; height: 100%; background: transparent; overflow: clip; }
+/* The sidebar paints the window ground (--page) over the macOS vibrancy material, composed in
+   tokens.css so prefers-reduced-transparency reaches it. A change of surface is the boundary: no
+   rule down its right. */
+.sidebar { width: var(--sidebar-w); flex: none; display: flex; flex-direction: column; min-height: 0;
+  background: var(--sidebar-ground); -webkit-app-region: drag; }
+.sidebar button, .sidebar input, .sidebar a { -webkit-app-region: no-drag; }
+/* The strip the traffic lights sit beside is the panel's 44px head, 8px down: its middle, 30px from
+   the window's top, is where main centres the lights. */
+.sb-head, .col-head { flex: none; height: 44px; -webkit-app-region: drag; }
+/* A head drags the window, and the window takes every press inside a part that drags it. So each
+   control in a head is named out of it here, once, instead of by every head that holds one. */
+.col-head :is(button, select, input, textarea, label, a) { -webkit-app-region: no-drag; }
+.sb-head { height: 52px; }
+.sb-list { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 8px; }
+.sb-section { margin: 0; padding: 6px 8px; font-size: 11px; line-height: 14px; font-weight: var(--fw-label); color: var(--rl-text-faint); }
+
+.main { flex: 1; min-width: 0; display: flex; margin: var(--panel-inset) var(--panel-inset) var(--panel-inset) 0; overflow: clip;
+  border-radius: var(--r-panel); corner-shape: squircle; background: var(--rl-panel); box-shadow: var(--panel-ring), var(--panel-shadow); }
+.col { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.col-list { width: 340px; flex: none; }
+/* The reader is the surface a person reads on: one step up from the list beside it. */
+.col-reader { flex: 1; background: var(--rl-raised); border-left: var(--hairline-w) solid var(--divider); }
+
+/* An empty page or pane (`EmptyState`): one glyph, one title, one line, at most one primary, centred
+   in whatever it fills. The glyph stands alone in the quiet ink. */
+.empty-state {
+  flex: 1 1 auto; margin: auto; box-sizing: border-box; max-width: 440px; padding: 48px 24px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center;
+}
+.empty-state-mark { flex: none; margin-bottom: 6px; color: var(--rl-text-faint); }
+.empty-state-title { margin: 0; font-size: 15px; line-height: 20px; font-weight: var(--fw-title); color: var(--rl-text-bright); overflow-wrap: anywhere; text-wrap: balance; }
+.empty-state-path { margin: 0; font: 12px var(--font-mono); color: var(--rl-text-dim); overflow-wrap: anywhere; }
+.empty-state-line { margin: 0; font-size: 13px; line-height: 18px; color: var(--rl-text-dim); text-wrap: balance; overflow-wrap: anywhere; }
+.empty-state-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 12px; }
+.empty-state-note { margin: 4px 0 0; font-size: 13px; line-height: 18px; color: var(--rl-text-dim); text-wrap: balance; }
+.empty-state-note code { font-family: var(--font-mono); font-size: 12px; color: var(--rl-text-bright); }
+
+/* ── Controls ──────────────────────────────────────────────────────────────
+   Realm's buttons, fields and segments. A control drawn under 40px keeps its tile and reaches the
+   press floor (`--hit-min`) through an overhang that stays inside the gap round it. */
+:root { --r-squircle-card: 20px; }
+/* One focus ring for every text-entry surface: the accent at 35%, 2px. */
+body { --focus-ring-field: 0 0 0 3px color-mix(in srgb, var(--rl-accent) 45%, transparent); }
+.icon-btn { position: relative; display: grid; place-items: center; width: 28px; --btn-h: 28px; height: var(--btn-h); border-radius: 50%; color: var(--rl-text-dim); }
+.icon-btn:hover { background: var(--rl-hover); color: var(--rl-text-bright); }
+/* A toggle whose glyph does NOT change has to say so with its fill: one rung past hover, so "on"
+   always reads as more than "under the pointer". */
+.icon-btn[aria-pressed="true"] { background: var(--hover-2); color: var(--rl-text-bright); }
+.icon-btn::after { content: ""; position: absolute; inset: -6px; }
+/* A button is a ROW, not a block of text: inline-flex + nowrap + no shrink keeps a glyph centred
+   beside its label and the label on one line. The ring is the button's outline; it has no lift. */
+.btn { position: relative; --btn-h: 28px; height: var(--btn-h); padding: 0 13px; border-radius: var(--r-pill); border: none; font-size: 13px; font-weight: var(--fw-medium);
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  flex-shrink: 0; white-space: nowrap;
+  --fill: var(--fill-3); background: var(--fill); }
+.btn::after { content: ""; position: absolute; inset: -5px 0; }
+.btn > svg { flex: none; }
+.btn:hover:not(:disabled) { --fill: var(--fill-2); }
+.btn.primary { --fill: var(--rl-accent-fill); color: var(--rl-accent-contrast); box-shadow: var(--fill-bevel); }
+.btn.primary:hover:not(:disabled) { --fill: var(--rl-accent-fill-hover); }
+/* Destructive confirms are the ONE place a red-filled button is allowed. */
+.btn.destructive { --fill: var(--rl-danger-fill); color: var(--rl-danger-contrast); box-shadow: var(--fill-bevel); }
+.btn.destructive:hover:not(:disabled) { --fill: var(--rl-danger-fill-hover); }
+/* A disabled primary must not wear the accent, but it must still be a BUTTON: the plain button's
+   ring, and a faint label that IS the dimming, so the opacity every other disabled button takes is
+   put back to 1. */
+.btn.primary:disabled { --fill: var(--fill-4); color: var(--rl-text-faint); opacity: 1; box-shadow: none; }
+/* Disabled-because-WORKING is not disabled-because-nothing-to-do: a busy button keeps its fill. */
+.btn:disabled[aria-busy="true"] { opacity: .7; }
+.btn.primary:disabled[aria-busy="true"] { --fill: var(--rl-accent-fill); color: var(--rl-accent-contrast); }
+/* A press is a FILL one rung past hover, painted on the mouse-down frame; the release fades back on
+   the hover rung. An accent fill darkens instead of stepping the ladder. */
+.btn, .icon-btn { transition: background-color var(--dur-hover) ease, color var(--dur-hover) ease, scale var(--dur-press) var(--ease-out-strong); }
+/* The press is felt on the way down: the control gives a little under the pointer and comes back on release. */
+:is(.btn, .icon-btn):active:not(:disabled) { scale: 0.97; }
+.btn:active:not(:disabled) { --fill: var(--hover-2); }
+.btn.primary:active:not(:disabled) { --fill: var(--rl-accent-press); }
+.btn.destructive:active:not(:disabled) { --fill: var(--rl-danger-press); }
+.icon-btn:active:not(:disabled) { background: var(--hover-2); color: var(--rl-text-bright); }
+/* Arriving is instant; leaving fades. A transition runs on the timing of the state it is ENTERING,
+   so stating the zero on the hovered and pressed states and nowhere else is the whole mechanism. */
+:is(button, [role="button"], [role="option"]):is(:hover, :active) { transition-duration: 0s; }
+
+.form { display: flex; flex-direction: column; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field > span { font-size: 12px; color: var(--rl-text-dim); }
+/* `select` is deliberately NOT scoped to `.field`: left alone it draws Chromium's own control, with
+   a SQUARE focus ring, inside a window where every other control is rounded. */
+.field input:not(.search-field, [type="radio"], [type="checkbox"]), select { height: 28px; padding: 0 9px; border-radius: var(--r-chip); corner-shape: squircle; border: none; background: var(--field); color: var(--rl-text-bright); outline: none; }
+/* A multi-line field is the same control with room: same ring, same ground, same radius. */
+.field textarea { padding: 7px 9px; border-radius: var(--r-ctl); corner-shape: squircle; border: none; background: var(--field);
+  color: var(--rl-text-bright); outline: none; font: inherit; line-height: 1.5; resize: vertical; }
+.field textarea:focus, .field input:not(.search-field, [type="radio"], [type="checkbox"]):focus, select:focus { box-shadow: var(--focus-ring-field); outline: none; }
+.field :is(input, textarea)::placeholder { color: var(--rl-text-faint); }
+select { appearance: none; padding-right: 22px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="8" height="5" viewBox="0 0 8 5"><path d="M1 1l3 3 3-3" fill="none" stroke="%2385868f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>');
+  background-repeat: no-repeat; background-position: right 6px center; }
+/* The app's one search field. `--search-h` stays a named property rather than a number in the rule:
+   the corner is a proportion of the height, so the two are one decision. */
+.search-field {
+  --search-h: 30px;
+  width: 100%; min-width: 0; height: var(--search-h); padding: 0 12px;
+  border: none; border-radius: calc(var(--search-h) * var(--sq-ratio-ctl)); corner-shape: squircle;
+  background: var(--field); color: var(--rl-text-bright); font: inherit; font-size: 13px; outline: none;
+}
+.search-field::placeholder { color: var(--rl-text-faint); }
+.search-field:focus { box-shadow: var(--focus-ring-field); }
+/* A segmented control: one row of radios wearing a shared track. No transition: a segment is a
+   choice, and a choice changes instantly both ways. */
+/* A segmented control: equal segments over a track, and one thumb that slides to the chosen one.
+   `--n` is how many segments there are and `--at` which is chosen, both read off the markup. */
+.seg { position: relative; display: inline-grid; grid-auto-flow: column; grid-auto-columns: 1fr; margin: 0; padding: 2px; border: none;
+  border-radius: var(--r-pill); --n: 2; --at: 0; }
+.seg:has(.seg-opt:nth-child(3)) { --n: 3; }
+.seg:has(.seg-opt:nth-child(2)[data-selected]) { --at: 1; }
+.seg:has(.seg-opt:nth-child(3)[data-selected]) { --at: 2; }
+.seg::before { content: ""; position: absolute; top: 2px; bottom: 2px; left: 2px; width: calc((100% - 4px) / var(--n));
+  border-radius: var(--r-pill); background: var(--seg-thumb); box-shadow: var(--seg-thumb-shadow);
+  translate: calc(var(--at) * 100%) 0; transition: translate var(--dur-move) var(--spring), scale var(--dur-press) var(--ease-out-strong); }
+/* The thumb gives under a press on any segment, before it sets off for the one pressed. */
+.seg:has(.seg-opt:active)::before { scale: 0.96; }
+.seg-opt { position: relative; padding: 4px 12px; font-size: 12px; line-height: 16px; font-weight: var(--fw-medium); color: var(--rl-text-dim);
+  white-space: nowrap; text-align: center; cursor: pointer; transition: color var(--dur-hover) ease; }
+/* A press anywhere in the track's height lands on the segment under it. */
+.seg-opt::after { content: ""; position: absolute; inset: -2px 0; }
+.seg-opt input { position: absolute; opacity: 0; pointer-events: none; }
+.seg-opt:hover, .seg-opt[data-selected] { color: var(--rl-text-bright); }
+.seg-opt:has(input:focus-visible) { outline: 1.5px solid var(--rl-accent); outline-offset: -1.5px; border-radius: var(--r-pill); }
+
+/* ── Glass ─────────────────────────────────────────────────────────────────
+   What floats over content is glass (design.md): the segmented control and every button in a
+   column's head, a reader's bar among them. The page draws it. The system's own glass view
+   can only go under the whole page or over it, so it cannot sit between a control's label and what
+   scrolls beneath, which is the one place this needs it.
+   The fill stays in `--fill` so a button's hover and press rungs go on working. */
+.seg, .col-head :is(.btn, .icon-btn) {
+  --fill: var(--glass-tint); background: var(--glass-sheen), var(--fill);
+  backdrop-filter: var(--glass-blur); box-shadow: var(--glass-edge), var(--glass-shadow); }
+.col-head .icon-btn, .col-head .btn:not(.primary, .destructive) { color: var(--rl-text-bright); }
+.col-head .icon-btn:hover:not(:disabled), .col-head .btn:not(.primary, .destructive):hover:not(:disabled) { --fill: var(--glass-tint-hover); }
+.col-head .icon-btn:active:not(:disabled), .col-head .btn:not(.primary, .destructive):active:not(:disabled) { --fill: var(--glass-tint-press); background: var(--glass-sheen), var(--fill); }
+.col-head .icon-btn:disabled { color: var(--rl-text-faint); }
+/* A filled button in a head is the same glass tinted all the way: its own colour under the sheen. */
+.col-head .btn.primary:not(:disabled) { --fill: var(--rl-accent-fill); }
+.col-head .btn.primary:hover:not(:disabled) { --fill: var(--rl-accent-fill-hover); }
+.col-head .btn.primary:active:not(:disabled) { --fill: var(--rl-accent-press); }
+.col-head .btn.primary:disabled { --fill: var(--glass-tint); box-shadow: var(--glass-edge), var(--glass-shadow); }
+.col-head .btn.primary:disabled[aria-busy="true"] { --fill: var(--rl-accent-fill); }
+/* Glass is never laid on glass, nor on a card: on a sheet, a toast or the reading's card the control goes back to a plain fill. */
+:is(.sheet, .toast, .rev-reading) .seg { background: var(--fill-3); backdrop-filter: none; box-shadow: none; }
+
+/* ── Scrollers ─────────────────────────────────────────────────────────────
+   No scroll bar draws a track, and the thumb shows only while a scroller is in use.
+
+   Overlay bars (the trackpad Mac's default). The system's own bar is kept — it appears on scroll,
+   fades on its own and reserves no width — but under the pointer macOS widens it and lays a track
+   the full height of the scroller beside the thumb. A `scrollbar-color` with a transparent track
+   keeps the overlay bar, still with no gutter, and takes the lane away. Nothing else may be said to
+   an overlay bar: a `::-webkit-scrollbar` rule turns it into a classic bar with a gutter.
+
+   Classic bars (a mouse plugged in, or "Always"). Every element states its own colour, so nothing
+   inherits a lit thumb from a hovered ancestor: the thumb is transparent until the pointer is in
+   that scroller, and the track is transparent always. Which kind the Mac draws is measured
+   (`data-overlay-scrollbars`, theme/scrollbars.ts). */
+:root[data-overlay-scrollbars] { scrollbar-color: color-mix(in oklab, var(--ink-3) 75%, transparent) transparent; }
+:root:not([data-overlay-scrollbars]) * { scrollbar-color: transparent transparent; }
+:root:not([data-overlay-scrollbars]) *:hover { scrollbar-color: var(--mark-strong) transparent; }
+:where(:root:not([data-overlay-scrollbars])) :where(.documents-rich-scroll, .documents-rich-surface pre, .documents-raw) { scrollbar-width: thin; }
+/* A masked scroller: a mask applies to the element's WHOLE rendering, scrollbar included, so the
+   thumb would dissolve at exactly the two places a scrollbar is most used. Only
+   `::-webkit-scrollbar-track`'s margin can hold a thumb clear of a region, and the pseudo-elements
+   are ignored the moment either standard property is set — so both are handed back here first. The
+   track margins read the same two custom properties the mask does. The lane is held whether or not
+   there is anything to scroll, so a list that grows past its column does not move its rows. */
+:root:not([data-overlay-scrollbars]) [data-dissolve] { scrollbar-color: auto; scrollbar-width: auto; scrollbar-gutter: stable; }
+:root:not([data-overlay-scrollbars]) [data-dissolve]::-webkit-scrollbar { width: 10px; height: 10px; }
+:root:not([data-overlay-scrollbars]) [data-dissolve]::-webkit-scrollbar-track { background: transparent; margin-block: var(--fade-top-h, 16px) var(--fade-h, 40px); }
+:root:not([data-overlay-scrollbars]) [data-dissolve]::-webkit-scrollbar-thumb {
+  background: transparent; border-radius: 999px; border: 3px solid transparent; background-clip: content-box; }
+:root:not([data-overlay-scrollbars]) [data-dissolve]:hover::-webkit-scrollbar-thumb { background: var(--mark-strong); background-clip: content-box; }
+:root:not([data-overlay-scrollbars]) [data-dissolve]::-webkit-scrollbar-corner { background: transparent; }
+/* The dissolve (`useDissolve` in ScrollFades.tsx): a MASK on the scroller, so the fade reveals the
+   ground that was always there. The depths are registered so they interpolate: an unregistered
+   custom property computes to a token stream, and token streams do not animate. */
+@property --dissolve-top { syntax: "<length>"; inherits: false; initial-value: 0px; }
+@property --dissolve-bottom { syntax: "<length>"; inherits: false; initial-value: 0px; }
+[data-dissolve] {
+  mask-image: linear-gradient(to bottom, transparent 0, #000 var(--dissolve-top),
+    #000 calc(100% - var(--dissolve-bottom)), transparent);
+  transition: --dissolve-top var(--dur-fast) ease, --dissolve-bottom var(--dur-fast) ease;
+}
+[data-dissolve~="start"] { --dissolve-top: var(--fade-top-h, 16px); }
+[data-dissolve~="end"] { --dissolve-bottom: var(--fade-h, 40px); }
+
+/* ── Sheets ────────────────────────────────────────────────────────────────
+   A column: the head and the foot hold, and the body between them scrolls and dissolves at its ends.
+   The panel itself never scrolls — a mask takes everything the element paints, and on the panel that
+   is its shadow and its corners. */
+.sheet-backdrop { position: fixed; inset: 0; z-index: 40; display: grid; place-items: center; background: var(--scrim);
+  animation: rl-fade-in var(--dur-swap) var(--ease-out-strong); }
+.sheet { max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); display: flex; flex-direction: column; overflow: hidden;
+  border-radius: var(--r-float); corner-shape: squircle; background: var(--float-ground); backdrop-filter: blur(40px) saturate(180%); color: var(--rl-text-bright);
+  box-shadow: var(--panel-ring), var(--shadow-overlay); outline: none;
+  animation: rl-sheet-in var(--dur-slow) var(--spring-smooth); }
+@keyframes rl-sheet-in { from { opacity: 0; transform: scale(.96); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes rl-fade-in { from { opacity: 0; } to { opacity: 1; } }
+.sheet-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px 14px 6px 18px; }
+.sheet-head h3 { margin: 0; font-size: 15px; line-height: 20px; font-weight: var(--fw-title); overflow-wrap: anywhere; }
+.sheet-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 8px 18px 18px; --fade-top-h: 24px; --fade-h: 28px; }
+/* The sheet's decision, held at the end of what it is a decision about. Its own hairline, because the
+   body scrolls under it. */
+.sheet-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 18px;
+  border-top: var(--hairline-w) solid var(--rl-hairline); }
+
+/* ── Toasts ────────────────────────────────────────────────────────────────
+   The window's notices, at its foot (components/Toasts.tsx). A raised card like a menu, because it
+   floats over the work the way a menu does. The tone is a glyph and the line across the foot, never
+   a fill: three errors in a row read as three notices, not as an alarm.
+   The stack: newest in front, the two before it tucked behind — clipped to its height, their words
+   hidden, each a step narrower and a peek higher — and fanned out under the pointer so each can be
+   read whole. Position, scale and height are the component's numbers; this only says how they move. */
+.toasts { position: fixed; z-index: 90; right: 16px; bottom: 16px; width: min(340px, calc(100vw - 32px)); pointer-events: none; }
+/* Fanned out, the whole stack is one target, gaps included: moving between two toasts must not
+   collapse it under the pointer. */
+.toasts[data-expanded] { pointer-events: auto; }
+.toast { position: absolute; left: 0; right: 0; bottom: 0; overflow: hidden; pointer-events: auto;
+  --toast-y: 0px; --toast-scale: 1; --toast-h: auto; --toast-life: 6000ms; --toast-tone: var(--rl-accent);
+  height: var(--toast-h); transform: translateY(var(--toast-y)) scale(var(--toast-scale)); transform-origin: 50% 0;
+  border-radius: var(--r-panel); corner-shape: squircle; background: var(--float-ground); backdrop-filter: blur(40px) saturate(180%); color: var(--rl-text-bright); box-shadow: var(--panel-ring), var(--shadow-card);
+  transition: transform var(--dur-move) var(--spring-smooth), height var(--dur-base) var(--ease-out-strong);
+  animation: rl-toast-rise var(--dur-slow) var(--spring-smooth); }
+/* The front one floats on the raised stack, as a menu does. The ones tucked behind it take the card's:
+   three toasts each casting the raised stack's widest layer pooled into a dark cloud over the corner. */
+.toast[data-front] { box-shadow: var(--shadow-raised); }
+.toast[data-tone="error"] { --toast-tone: var(--rl-danger); }
+.toast[data-tone="warning"] { --toast-tone: var(--rl-warning); }
+.toast[data-tone="success"] { --toast-tone: var(--rl-success); }
+.toast-body { display: flex; align-items: flex-start; gap: 10px; padding: 12px 8px 12px 12px;
+  transition: opacity var(--dur-swap) var(--ease-fade); }
+.toast-icon { flex: none; display: grid; place-items: center; height: 18px; color: var(--toast-tone); }
+.toast-text { flex: 1; min-width: 0; margin: 0; font-size: 13px; line-height: 18px; font-weight: var(--fw-medium);
+  overflow-wrap: anywhere; text-wrap: pretty; }
+/* Off its own line box at the top, so a 28px target does not make a one-line toast taller. */
+.toast-close { flex: none; margin: -5px 0; color: var(--rl-text-faint); }
+.toast .toast-action { flex: none; height: 28px; margin: -5px -2px; padding: 0 8px; border-radius: var(--r-chip); font-size: 13px; font-weight: var(--fw-label); color: var(--accent-ink); }
+.toast .toast-action:hover { background: var(--rl-hover); }
+/* Tucked behind, a toast is its top edge and nothing more: three notices' words a few pixels apart
+   would be one illegible one. */
+.toasts:not([data-expanded]) .toast:not([data-front]) .toast-body { opacity: 0; }
+/* The line across the foot is the toast's time, running left to right on the clock the component
+   leaves on, and stopping with it under the pointer. */
+.toast-progress { position: absolute; left: 0; bottom: 0; width: 100%; height: 2px; transform-origin: 0 50%; transform: scaleX(0);
+  background: color-mix(in oklch, var(--toast-tone) 70%, transparent);
+  animation: rl-toast-progress var(--toast-life) linear forwards; }
+.toast[data-paused] .toast-progress { animation-play-state: paused; }
+@keyframes rl-toast-progress { to { transform: scaleX(1); } }
+/* It rises from the window's foot on the spring a surface arrives on, and leaves on a short fade with
+   a little drop — quieter than it came. */
+@keyframes rl-toast-rise { from { opacity: 0; translate: 0 calc(100% + 16px); } }
+.toast[data-leaving] { opacity: 0; translate: 0 6px; pointer-events: none;
+  transition: opacity var(--dur-swap) var(--ease-fade), translate var(--dur-swap) var(--ease-fade); }
+
+/* ── Rich Markdown editor ──────────────────────────────────────────────────── */
+.documents-rich { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+.documents-rich-toolbar {
+  display: flex; align-items: center; gap: 2px; padding: 6px 28px; flex: 0 0 auto;
+  border-bottom: var(--hairline-w) solid var(--rl-line);
+}
+.documents-rich-sep { width: 1px; height: 16px; margin: 0 5px; background: var(--rl-line); }
+/* Side by side, 2px apart: each button's press reaches up and down, and no further across than its gap. */
+.documents-rich-toolbar .icon-btn::after { inset: -6px -1px; }
+.documents-h { font-size: 11px; font-weight: var(--fw-title); }
+/* The scroller. `min-height: 0` is the half that matters: a flex item's default `min-height: auto`
+   refuses to shrink below its content, which is how a bounded column ends up as tall as its file. */
+.documents-rich-scroll { flex: 1 1 auto; min-height: 0; overflow: auto; }
+.documents-rich .tiptap, .documents-rich-surface { outline: none; padding: 18px 40px 40px; }
+/* Soft line breaks are preserved as real newlines in the model, so they must render as breaks. */
+.documents-rich-surface { white-space: pre-wrap; font-family: var(--font-content); line-height: 1.65; font-size: 14px; }
+.documents-rich-surface > * { margin: 0; max-width: 720px; }
+.documents-rich-surface > * + * { margin-top: 0.7em; }
+.documents-rich-surface :is(h1, h2, h3, h4, h5, h6) { margin-bottom: 0; line-height: 1.3; }
+.documents-rich-surface h1 { font-size: 1.55em; font-weight: var(--fw-title); }
+.documents-rich-surface h2 { font-size: 1.3em; font-weight: var(--fw-title); }
+.documents-rich-surface h3 { font-size: 1.12em; font-weight: var(--fw-title); }
+.documents-rich-surface :is(h4, h5, h6) { font-size: 1em; font-weight: var(--fw-title); }
+.documents-rich-surface ul, .documents-rich-surface ol { margin-bottom: 0; padding-left: 1.4em; }
+.documents-rich-surface ul { list-style: disc; }
+.documents-rich-surface ol { list-style: decimal; }
+.documents-rich-surface li > p { margin: 0; }
+.documents-rich-surface blockquote { margin-inline: 0; border-left: 2px solid var(--rl-line); padding-left: 0.9em; color: var(--rl-text-dim); }
+.documents-rich-surface hr { border: none; border-top: var(--hairline-w) solid var(--rl-line); }
+.documents-rich-surface code { font-family: var(--font-mono); font-size: 0.9em; background: var(--field); padding: 0.1em 0.3em; border-radius: var(--r-sm); }
+/* The surface wraps (`pre-wrap`) and a fence must not: code is columns, so a wide block scrolls sideways
+   inside itself while the prose around it keeps wrapping. */
+.documents-rich-surface pre { background: var(--rl-frame-raised); padding: 10px 12px; border-radius: var(--r-ctl); overflow: auto; }
+/* Through the editor's own root: ProseMirror's stylesheet sets `pre-wrap` on every `pre` at this
+   rule's weight, and loads after it. */
+.documents-rich .documents-rich-surface pre { white-space: pre; overflow-wrap: normal; }
+.documents-rich-surface pre code { background: none; padding: 0; }
+.documents-rich-surface img { max-width: 100%; border-radius: var(--r-ctl); }
+.documents-rich-surface a { color: var(--accent-ink); font-weight: var(--fw-label); text-decoration: none; }
+/* Tables. `fixed` layout because a table must not widen the column it lives in: a long cell wraps. */
+.documents-rich-surface table { width: 100%; table-layout: fixed; border-collapse: collapse; margin: 0.9em 0; font-size: 13px; }
+.documents-rich-surface th, .documents-rich-surface td {
+  position: relative; padding: 6px 10px; text-align: left; vertical-align: top;
+  border: var(--hairline-w) solid var(--rl-line); overflow-wrap: anywhere;
+}
+.documents-rich-surface th { background: var(--rl-frame); font-weight: var(--fw-label); color: var(--rl-text-bright); }
+.documents-rich-surface th > p, .documents-rich-surface td > p { margin: 0; }
+.documents-rich-surface .selectedCell::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: color-mix(in srgb, var(--rl-accent) 18%, transparent);
+}
+/* Content the schema cannot represent (frontmatter, HTML): shown as its exact source, and preserved
+   byte-for-byte on save rather than edited here. A well, with no line round it: the reader and a
+   sheet are both the raised surface, so it takes the step measured for a well set into one. */
+.documents-raw {
+  font-family: var(--font-mono); font-size: 12px; line-height: 18px; white-space: pre;
+  overflow-x: auto; padding: 8px 10px;
+  border-radius: var(--r-ctl); color: var(--rl-text-dim); background: var(--rl-frame-raised);
+}
+.documents-rich-surface .ProseMirror-selectednode { outline: 2px solid var(--rl-accent); }
+/* The source editor's host. It carries a height because `code-theme.ts` sets the CodeMirror editor
+   to `height: 100%`, and 100% of an auto-height parent is zero. */
+.documents-code { width: 100%; height: 100%; min-height: 0; }
+
+/* ── The library ───────────────────────────────────────────────────────────
+   Mail's three columns: where files are kept in the sidebar, the files of the row chosen there, and
+   the one being read. */
+/* The head rows are drag regions, and what is pressed in one stands in a group that is not: the
+   row's whole height, so a control's overhang to the press floor is its to answer and not the window's. */
+.col-head-actions { flex: none; align-self: stretch; display: flex; align-items: center; gap: 8px; -webkit-app-region: no-drag; }
+/* What a view shows while its answer is on the way, once the wait is long enough to notice. */
+.empty-state.is-late { opacity: 0; animation: rl-fade-in var(--dur-swap) linear .3s forwards; }
+
+/* The sidebar: the two ways to group, then the rows. */
+.lib-view { flex: none; padding: 4px 12px 10px; -webkit-app-region: no-drag; }
+.lib-view .seg { display: grid; }
+/* A SCROLLER is never part of the window's drag region: over one macOS takes the wheel for the window. */
+.lib-nav { display: flex; flex-direction: column; gap: 8px; padding: 2px 12px 16px; -webkit-app-region: no-drag; --fade-top-h: 12px; --fade-h: 32px; }
+.lib-nav-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+/* A row does not light under a passing pointer, as Finder's and Mail's do not: a click lights it. */
+.lib-nav-row { position: relative; width: 100%; display: flex; align-items: center; gap: 8px; height: 30px; padding: 0 10px 0 8px; text-align: left;
+  border-radius: var(--r-row); corner-shape: squircle; font-size: 13px; font-weight: var(--fw-medium); color: var(--rl-text-dim);
+  transition: background-color var(--dur-hover) ease, color var(--dur-hover) ease; }
+.lib-nav-row:hover:not([data-selected]) { background: var(--rl-hover); }
+.lib-nav-row::after { content: ""; position: absolute; inset: -0.5px 0; }
+.lib-nav-row[data-selected] { background: var(--rl-active); color: var(--rl-text-bright); }
+/* A kind of file, under the agent it belongs to: in from the mark, to stand under the agent's name. */
+.lib-nav-row[data-nested] { padding-left: 32px; font-weight: var(--fw-body); }
+.lib-nav-mark { flex: none; }
+/* The chosen row's glyph takes the accent, as a chosen sidebar row's does on the Mac. An agent's mark
+   keeps the colour it is drawn in. */
+.lib-nav-row[data-selected] > .lib-nav-mark:not([data-brand]) { color: var(--accent-ink); }
+/* A mark wider than it is tall (Realm's) keeps the 16px every other row's name starts after. */
+.lib-nav-row > svg[data-brand] { width: 16px; }
+.lib-nav-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-nav-count { flex: none; font-size: 12px; font-weight: var(--fw-body); color: var(--rl-text-faint); font-variant-numeric: tabular-nums; }
+.lib-nav-none { padding: 8px; font-size: 13px; line-height: 18px; color: var(--rl-text-dim); }
+.lib-nav > .sb-section { padding: 8px 8px 0; font-size: 12px; line-height: 16px; color: var(--rl-text-dim); }
+.lib-nav > .empty-state { padding: 24px 8px; }
+
+/* The list: what it is showing and the way to add to it, the search, and the files. */
+/* The title starts where a row's words do (the list's 10px and the row's 12), and the last button
+   ends where a row's ground does. */
+.lib-list-head { display: flex; align-items: center; gap: 8px; padding: 0 10px 0 22px; }
+.lib-list-title { flex: 1; min-width: 0; margin: 0; display: flex; align-items: center; gap: 6px; overflow: hidden; white-space: nowrap;
+  font-size: 13px; line-height: 18px; font-weight: var(--fw-title); color: var(--rl-text-bright); }
+.lib-list-title > svg { flex: none; }
+/* One agent's files: its mark, its name, then the kind the sidebar picked, quieter and with nothing
+   between them. The kind gives way first when the column is narrow. */
+.lib-list-name { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.lib-list-kind { flex: 0 10000 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: var(--fw-body); color: var(--rl-text-dim); }
+/* A mark that is a picture has a drawing for a dark ground and one for a light: the one for the face in force shows. */
+svg[data-brand] > .mark-on-light, :root[data-mode="light"] svg[data-brand] > .mark-on-dark { display: none; }
+:root[data-mode="light"] svg[data-brand] > .mark-on-light { display: inline; }
+/* An agent's mark beside the words that name where something came from: on their line, just before them. */
+:is(.lib-reader-where, .rev-subject-name, .rev-row-title, .setup-place-who) > svg[data-brand] { display: inline-block; vertical-align: -2px; margin-right: 6px; }
+:is(.lib-row-head, .lib-copy, .models-card-head) > svg[data-brand] { flex: none; }
+.lib-row-head > svg[data-brand] { margin-right: -2px; }
+.lib-copy > svg[data-brand] { margin-right: -4px; }
+/* The label is the field's press target: 40px, with the field's 32 drawn inside it. */
+.lib-search { flex: none; position: relative; display: block; padding: 4px 10px; }
+/* Over the field, not under it: glass is a layer of its own and would be drawn across the glyph. */
+.lib-search > svg { position: absolute; z-index: 1; left: 22px; top: 50%; translate: 0 -50%; color: var(--rl-text-faint); pointer-events: none; }
+.lib-search > .search-field { padding-left: 34px; }
+/* A search or filter field is glass like the buttons over it, and a capsule as they are. */
+.lib-search > .search-field { border-radius: var(--r-pill); corner-shape: round; background: var(--glass-sheen), var(--glass-tint); backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-edge), var(--glass-shadow); }
+.lib-search > .search-field:focus { box-shadow: var(--glass-edge), var(--glass-shadow), var(--focus-ring-field); }
+.lib-rows { flex: 1; min-height: 0; overflow-y: auto; list-style: none; margin: 0; padding: 4px 10px 24px;
+  display: flex; flex-direction: column; gap: 4px; outline: none; --fade-top-h: 12px; --fade-h: 34px; scroll-padding-block: 12px 34px; }
+/* A file: its name, the one line that says what it is (or where a search found it), and where it is
+   kept with how long ago it changed. Chosen, it takes the column's active fill. */
+.lib-row { flex: none; display: flex; flex-direction: column; gap: 2px; padding: 11px 12px 12px; border-radius: var(--r-row); corner-shape: squircle;
+  transition: background-color var(--dur-hover) ease; }
+.lib-row:hover:not([data-selected]) { background: var(--rl-hover); }
+/* The chosen row is a card of glass in the accent's tint: the face, edge and lift a grid's card has. */
+/* The tint is laid as a picture of one colour: only the last layer of a background may be a colour. */
+.lib-row[data-selected] { background: linear-gradient(var(--row-selected), var(--row-selected)), var(--card-glass); box-shadow: var(--card-glass-edge), var(--card-glass-shadow); }
+/* The keyboard is in the list: the chosen row wears the ring, not the box round all of them. */
+.lib-rows:focus-visible .lib-row[data-selected] { box-shadow: inset 0 0 0 2px var(--rl-accent), var(--card-glass-shadow); }
+.lib-row-head { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.lib-row-title { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 13px; line-height: 18px; font-weight: var(--fw-title); color: var(--rl-text-bright); }
+/* A folder's index is a list of the rows beside it, so it stands back from them. */
+.lib-row[data-index] .lib-row-title { font-weight: var(--fw-body); color: var(--rl-text-dim); }
+.lib-row-copies { flex: none; display: inline-flex; align-items: center; gap: 4px; height: 18px; padding: 0 7px; border-radius: var(--r-pill);
+  background: var(--accent-tint); font-size: 11px; line-height: 14px; font-weight: var(--fw-medium); color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+.lib-row-line { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; line-height: 16px; color: var(--rl-text-dim); }
+.lib-row-line[data-empty] { color: var(--rl-text-faint); }
+.lib-row-foot { display: flex; align-items: center; gap: 6px; min-width: 0; margin-top: 4px; font-size: 11px; line-height: 14px; color: var(--rl-text-faint); font-variant-numeric: tabular-nums; }
+.lib-row-place { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-row-foot > time { flex: none; margin-left: auto; color: var(--rl-text-faint); }
+.lib-chip { flex: none; padding: 0 6px; border-radius: var(--r-pill); background: var(--fill-4); font-size: 11px; line-height: 16px; color: var(--rl-text-dim); }
+
+/* ── The library as a grid ─────────────────────────────────────────────────
+   The same files as cards across the whole panel, in as many columns as fit. The head is the
+   list's with the search moved up into it, and a card's file has the panel to itself. */
+.lib-layout .seg-opt { display: grid; place-items: center; min-height: 24px; padding: 4px 9px; }
+.lib-grid { flex: 1; }
+/* The head's two ends stand over the cards' two edges. */
+.lib-grid-head { padding: 0 16px; }
+/* In a head the field is one of its controls: no margin of its own, so the 8px between controls is the head's. */
+.lib-grid-head > .lib-search { flex: 0 1 260px; padding: 4px 0; -webkit-app-region: no-drag; }
+.lib-grid-head > .lib-search > svg { left: 12px; }
+.lib-cards { flex: 1; min-height: 0; overflow-y: auto; list-style: none; margin: 0; padding: 4px 16px 24px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(224px, 1fr)); align-content: start; gap: 12px;
+  --fade-top-h: 12px; --fade-h: 34px; scroll-padding-block: 12px 34px; }
+/* A row's cards are one height: each fills its cell, and its foot sits on the card's floor. */
+.lib-cards > li { display: flex; min-width: 0; }
+/* A card is glass, lightly (design.md): the face, the edge and the lift of `--card-glass-*`. */
+.lib-card { flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 16px; text-align: left;
+  border-radius: var(--r-card); corner-shape: squircle; background: var(--card-glass); box-shadow: var(--card-glass-edge), var(--card-glass-shadow);
+  transition: translate var(--dur-move) var(--spring), box-shadow var(--dur-hover) ease, scale var(--dur-press) var(--ease-out-strong); }
+.lib-card:hover { background: var(--card-glass-hover); translate: 0 -1px; box-shadow: var(--card-glass-edge), var(--card-glass-shadow-hover); }
+.lib-card:active { scale: 0.98; translate: none; box-shadow: var(--card-glass-edge), var(--card-glass-shadow); }
+.lib-card-head { display: flex; align-items: center; gap: 8px; min-width: 0; height: 18px; }
+.lib-card-head > svg[data-brand] { flex: none; }
+.lib-card-kind { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; line-height: 14px; color: var(--rl-text-dim); }
+.lib-card-title { margin-top: 10px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; overflow-wrap: anywhere;
+  font-size: 13px; line-height: 18px; font-weight: var(--fw-title); color: var(--rl-text-bright); }
+.lib-card[data-index] .lib-card-title { font-weight: var(--fw-body); color: var(--rl-text-dim); }
+.lib-card-line { margin-top: 4px; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden; overflow-wrap: anywhere;
+  font-size: 12px; line-height: 16px; color: var(--rl-text-dim); text-wrap: pretty; }
+.lib-card-line[data-empty] { color: var(--rl-text-faint); }
+.lib-card-foot { display: flex; align-items: center; gap: 6px; min-width: 0; margin-top: auto; padding-top: 14px;
+  font-size: 11px; line-height: 16px; color: var(--rl-text-faint); font-variant-numeric: tabular-nums; }
+.lib-card-foot > time { flex: none; margin-left: auto; }
+:root:not([data-overlay-scrollbars]) .lib-cards { padding-right: 6px; }
+.col-reader[data-alone] { border-left: none; }
+.lib-reader-back { margin-right: auto; }
+@media (prefers-reduced-motion: no-preference) {
+  .lib-cards > li[style] { animation: mac-row 300ms var(--spring) backwards; animation-delay: calc(var(--nth) * 16ms); }
+}
+
+/* Where the Mac draws classic bars, each scroller's lane comes out of its own right inset, so its
+   rows keep the edge the controls above them have. */
+:root:not([data-overlay-scrollbars]) .lib-nav { padding-right: 2px; }
+:root:not([data-overlay-scrollbars]) .lib-rows { padding-right: 0; }
+:root:not([data-overlay-scrollbars]) .lib-reader-scroll { padding-right: 30px; }
+:root:not([data-overlay-scrollbars]) .sheet-body { padding-right: 8px; }
+
+/* The reader: what can be done to the file in the head row, and the file under it at a reading measure. */
+.col-reader { outline: none; }
+.lib-reader-bar { display: flex; align-items: center; justify-content: flex-end; gap: 8px; padding: 0 12px; }
+/* A reader's bar floats: the page scrolls up under it, dissolving at the panel's edge, and its
+   buttons stay readable because they are glass. The scroller starts its text below the bar and
+   brings a line it is asked to show to rest below it too. The editor's bar carries the file's name,
+   which text must not run under, so it keeps its own row. */
+.lib-reader-bar:not(.lib-editor-bar):has(+ .lib-reader-scroll) { position: relative; z-index: 1; margin-bottom: -44px; }
+.lib-reader-bar:not(.lib-editor-bar) + .lib-reader-scroll { padding-top: 48px; scroll-padding-top: 48px; }
+.lib-reader-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 40px 48px; --fade-top-h: 16px; --fade-h: 40px; }
+.lib-reader { max-width: 720px; margin: 0 auto; }
+.lib-reader-title { margin: 0; font-size: 26px; line-height: 32px; font-weight: var(--fw-strong); letter-spacing: -0.02em;
+  color: var(--rl-text-bright); overflow-wrap: anywhere; text-wrap: balance; }
+.lib-reader-where { margin: 4px 0 0; font-size: 12px; line-height: 16px; color: var(--rl-text-dim); font-variant-numeric: tabular-nums; }
+.lib-reader-desc { margin: 14px 0 0; font-size: 15px; line-height: 22px; color: var(--rl-text-dim); text-wrap: pretty; }
+/* The frontmatter, who loads the file and where it is: a quiet list of what the file says about itself. */
+.lib-props { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; gap: 8px 20px; margin: 20px 0 24px; font-size: 13px; line-height: 18px; }
+.lib-props > dt { align-self: start; color: var(--rl-text-faint); }
+.lib-props > dd { min-width: 0; margin: 0; color: var(--rl-text-dim); overflow-wrap: anywhere; }
+.lib-props > dt:has(+ dd > :is(.lib-copies, .lib-tags, .lib-path)) { padding-top: 5px; }
+.lib-props > dt:has(+ dd > .lib-copies) { padding-top: 9px; }
+.lib-props-file { display: flex; align-items: center; gap: 6px; }
+/* One line, cut in the middle: the folders shrink to an ellipsis before the file's own name does. */
+.lib-path { display: flex; min-width: 0; font-family: var(--font-mono); font-size: 12px; line-height: 18px; color: var(--rl-text-dim); white-space: nowrap; }
+.lib-path-dir { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+.lib-path-name { flex-shrink: 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+/* The other files that hold this memory. Each row opens that copy. */
+.lib-copies { list-style: none; margin: 0 0 0 -8px; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.lib-copy { position: relative; width: 100%; display: flex; align-items: center; gap: 12px; height: 36px; padding: 0 8px; text-align: left;
+  border-radius: var(--r-chip); corner-shape: squircle; background: var(--rl-hover); color: var(--rl-text-bright);
+  transition: background-color var(--dur-hover) ease; }
+.lib-copy::after { content: ""; position: absolute; inset: -2px 0; }
+.lib-copy:hover { background: var(--rl-active); }
+.lib-copy-where { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lib-copy-state { flex: none; font-size: 12px; color: var(--rl-text-dim); }
+.lib-copy-state[data-changed] { color: var(--rl-warning); }
+/* Tags: a chip takes its tag off, the field adds one. */
+.lib-tags { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 6px; }
+.lib-tag { position: relative; display: inline-flex; align-items: center; gap: 4px; height: 28px; padding: 0 7px 0 9px; border-radius: var(--r-chip); corner-shape: squircle;
+  background: var(--rl-hover); font-size: 12px; line-height: 16px; color: var(--rl-text-bright);
+  transition: background-color var(--dur-hover) ease; }
+.lib-tag::after { content: ""; position: absolute; inset: -6px 0; }
+.lib-tag:hover { background: var(--rl-active); }
+.lib-tag > svg { color: var(--rl-text-faint); }
+.lib-tag-field { width: 112px; height: 28px; padding: 0 8px; border: none; border-radius: var(--r-chip); corner-shape: squircle;
+  background: transparent; font-size: 12px; line-height: 16px; color: var(--rl-text-bright); outline: none; }
+.lib-tag-field::placeholder { color: var(--rl-text-faint); }
+.lib-tag-field:focus { background: var(--field); box-shadow: var(--focus-ring-field); }
+/* Why a file cannot be changed here. */
+.lib-reader-note { display: flex; align-items: flex-start; gap: 10px; margin: 0 0 24px; padding: 14px 16px; border-radius: var(--r-card); corner-shape: squircle;
+  background: var(--rl-frame-raised); font-size: 13px; line-height: 18px; color: var(--rl-text-dim); text-wrap: pretty; }
+.lib-reader-note > svg { flex: none; margin-top: 2px; color: var(--rl-text-faint); }
+.lib-reader-none { margin: 0; font-size: 13px; line-height: 18px; color: var(--rl-text-dim); }
+/* The body, rendered by the rich editor, read-only and as tall as it is: the reader's own scroller
+   is the one that scrolls. */
+.lib-reader-body .documents-rich { height: auto; }
+.lib-reader-body .documents-rich-scroll { overflow: visible; }
+.lib-reader-body .documents-rich .documents-rich-surface { padding: 0; font-size: 15px; }
+.lib-reader-body .documents-rich-surface a:hover { text-decoration: underline; text-underline-offset: 2px; }
+/* A link that leads to no file: struck, in the quiet ink, and nothing to press. */
+.lib-reader-body .documents-rich-surface a[data-dead], .lib-reader-body .documents-rich-surface a[data-dead]:hover {
+  color: var(--rl-text-dim); font-weight: inherit; text-decoration: line-through; cursor: default; }
+
+/* Editing: the file's name and what a save will do, the two ways to edit, and the decision. */
+.lib-editor-bar { padding-left: 40px; }
+.lib-editor-name { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 10px; }
+.lib-editor-title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 14px; line-height: 20px; font-weight: var(--fw-title); }
+.lib-editor-state { flex: none; font-size: 12px; line-height: 16px; color: var(--rl-text-dim); }
+.lib-editor-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+
+/* What a change asks first, and the new memory's form. */
+.lib-ask-path { display: block; margin: 0 0 12px; padding: 8px 10px; border-radius: var(--r-ctl); corner-shape: squircle; background: var(--rl-frame-raised);
+  font-family: var(--font-mono); font-size: 12px; line-height: 18px; color: var(--rl-text-bright); overflow-wrap: anywhere; }
+.lib-ask-line { margin: 0; font-size: 13px; line-height: 18px; color: var(--rl-text-dim); text-wrap: pretty; }
+.lib-ask-line + .lib-ask-line { margin-top: 8px; }
+.lib-new-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 12px; }
+.lib-new select { width: 100%; }
+.lib-new-by { margin: 0; font-size: 12px; line-height: 16px; color: var(--rl-text-dim); text-wrap: pretty; }
+
+/* ── Motion ────────────────────────────────────────────────────────────────
+   `*` does not match a pseudo-element, so they are named. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .empty-state.is-late { opacity: 1; }
+}
