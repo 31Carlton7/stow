@@ -5,15 +5,12 @@
 :root {
   color-scheme: light dark;
 
-  /* The icon's two colours. They are laid on objects (the tray, a button), never behind type. */
-  --brand-top: #8390ff;
-  --brand-bottom: #4136c8;
+  /* The icon's colour. It is laid on objects (a button), never behind type. */
   --brand: #4a40d4;
 
   --ground: #fbfbfd;
   --panel: #f1f1f5;
   --inset: #fff;
-  --sheet: #fff;
   --solid: #fff;
   --ink: #1d1d1f;
   --ink-2: #515154;
@@ -31,7 +28,7 @@
   --r-ctl: 14px;
   --r-row: 18px;
   --r-card: 28px;
-  /* The one measure: the bar, every section and the foot are this wide and share their edges. */
+  /* The one measure: every section and the foot are this wide and share their edges. */
   --gutter: clamp(20px, 5vw, 48px);
   --page: min(1080px, 100% - 2 * var(--gutter));
   --section: clamp(96px, 12vw, 168px);
@@ -50,7 +47,7 @@
   --glass-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.07), 0 1px 2px rgb(0 0 0 / 0.06), 0 6px 16px rgb(0 0 0 / 0.09);
 
   --window-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.16), 0 2px 6px rgb(0 0 0 / 0.05), 0 36px 70px -28px rgb(0 0 0 / 0.28);
-  --sheet-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.05), 0 6px 14px rgb(0 0 0 / 0.07);
+  --mark-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.05), 0 6px 14px rgb(0 0 0 / 0.07);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -60,7 +57,6 @@
     --ground: #0b0b0d;
     --panel: #17171a;
     --inset: #222226;
-    --sheet: #2a2a30;
     --solid: #2a2a30;
     --ink: #f5f5f7;
     --ink-2: #a1a1a6;
@@ -79,7 +75,7 @@
     --glass-shadow: 0 0 0 0.5px rgb(0 0 0 / 0.36), 0 1px 2px rgb(0 0 0 / 0.22), 0 6px 16px rgb(0 0 0 / 0.2);
 
     --window-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.16), 0 36px 70px -28px rgb(0 0 0 / 0.9);
-    --sheet-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.12), 0 6px 14px rgb(0 0 0 / 0.3);
+    --mark-shadow: 0 0 0 0.5px rgb(255 255 255 / 0.12), 0 6px 14px rgb(0 0 0 / 0.3);
   }
 }
 
@@ -138,13 +134,15 @@ h3 { font-size: 1.25rem; line-height: 1.25; letter-spacing: -0.014em; font-weigh
 }
 
 /* ── The bar ──
-   Centred by its margins, not by `left: 50%`: that would hold it to half the window's width. */
+   A small capsule, centred by its margins, not by `left: 50%`: that would hold it to half the
+   window's width. */
 .nav {
   position: fixed;
   z-index: 10;
   top: 14px;
   inset-inline: 0;
-  width: var(--page);
+  width: 440px;
+  max-width: calc(100% - 24px);
   margin-inline: auto;
   display: flex;
   align-items: center;
@@ -188,79 +186,68 @@ main > section, main.legal { position: relative; width: var(--page); margin-inli
 .head { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: end; gap: 20px 48px; }
 .head .lede { max-width: 34ch; justify-self: end; }
 
-/* ── The opening ── */
-.opening { padding-top: clamp(116px, 10vw, 136px); text-align: center; }
+/* ── The opening ──
+   --stand is how far the window has stood up and --flow how far the marks have gone in behind it,
+   both 0 to 1 and set by script.js from the scroll. Without the script, or with motion reduced,
+   the window stands and the marks stay out where they can be seen. */
+.opening { --stand: 1; --flow: 0; padding-top: clamp(116px, 10vw, 136px); text-align: center; }
 .opening h1 { max-width: 16ch; margin-inline: auto; }
+.inline-icon { display: inline-block; width: auto; height: 0.84em; vertical-align: -0.1em; rotate: -7deg; }
 .opening .lede { max-width: 720px; margin: 24px auto 28px; text-wrap: balance; }
 
-/* The tray and its eight sheets. Every measure is a multiple of --u so the whole drawing scales as
-   one. A sheet rests in its slot by default; with motion allowed it starts loose on the page
-   (--fx across, in hundredths of the column; --sy up; --sr turned), squares up over its slot and
-   drops in behind the tray's front. script.js adds .seen when the tray is on screen. */
-.stow {
-  --u: 1px;
-  container-type: inline-size;
+/* The window takes the middle 74% of the column and the marks the 13% at each side. A mark is
+   placed by its centre (--x from the column's centre line, --y down the window) and sized from
+   the column, so the two sides mirror each other and stay inside it at any width. */
+.stage { container-type: inline-size; position: relative; margin-top: clamp(40px, 5vw, 64px); perspective: 1800px; }
+.stage .window-wrap {
   position: relative;
-  height: calc(230 * var(--u));
-  margin-top: clamp(28px, 4vw, 44px);
+  max-width: 74%;
+  margin: 0 auto;
+  transform-origin: 50% 100%;
+  transform: rotateX(calc((1 - var(--stand)) * 26deg)) scale(calc(0.9 + 0.1 * var(--stand)));
 }
-.tray-back, .tray-front {
+.drift { position: absolute; inset: 0; }
+.drift li {
+  --tile: clamp(36px, 6.3cqw, 68px);
   position: absolute;
-  left: 50%;
-  bottom: 0;
-  width: calc(510 * var(--u));
-  margin-left: calc(-255 * var(--u));
-  border-radius: calc(34 * var(--u));
-  corner-shape: squircle;
-}
-.tray-back { height: calc(146 * var(--u)); background: #332aa6; }
-.tray-front {
-  z-index: 2;
+  left: calc(50% + var(--x));
+  top: var(--y);
   display: grid;
   place-items: center;
-  height: calc(104 * var(--u));
-  background: linear-gradient(to bottom, var(--brand-top), var(--brand-bottom));
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.4), 0 calc(-6 * var(--u)) calc(14 * var(--u)) calc(-8 * var(--u)) rgb(20 14 90 / 0.5);
-  color: #fff;
-}
-.tray-front svg { width: calc(34 * var(--u)); height: calc(34 * var(--u)); opacity: 0.92; }
-.sheet {
-  --slot: calc((var(--i) - 3.5) * 46 * var(--u));
-  position: absolute;
-  z-index: 1;
-  left: 50%;
-  bottom: calc(26 * var(--u));
-  display: grid;
-  align-content: start;
-  justify-items: start;
-  gap: calc(9 * var(--u));
-  width: calc(132 * var(--u));
-  height: calc(168 * var(--u));
-  margin-left: calc(-66 * var(--u));
-  padding: calc(13 * var(--u));
-  border-radius: calc(15 * var(--u));
+  width: var(--tile);
+  height: var(--tile);
+  margin: calc(var(--tile) / -2) 0 0 calc(var(--tile) / -2);
+  border-radius: calc(var(--tile) * 0.3);
   corner-shape: squircle;
-  background: var(--sheet);
-  box-shadow: var(--sheet-shadow);
-  transform: translate(var(--slot), 0);
+  background: var(--solid);
+  box-shadow: var(--mark-shadow);
+  scale: var(--z);
+  translate: calc(var(--x) * var(--flow) * -2.4) calc(var(--flow) * (1 - var(--z)) * 120px);
 }
-.sheet svg { width: calc(22 * var(--u)); height: calc(22 * var(--u)); }
-/* A file's name is read while it lies loose. In the tray the next sheet covers it, so it is gone. */
-.sheet b { margin-top: calc(2 * var(--u)); color: var(--ink-2); font: 400 calc(10.5 * var(--u)) / 1 var(--mono); opacity: 0; }
-.sheet i { width: 100%; height: calc(5 * var(--u)); border-radius: 999px; background: var(--fill-strong); }
-.sheet i:last-child { width: 62%; }
+.drift svg { width: 47%; height: 47%; }
 
-/* ── What Stow reads, as one sentence with each agent's mark beside its name ── */
+/* ── The sentence that lights as it is read, each agent's mark set inside it as a chip ── */
 .statement { padding-top: var(--section); }
-.statement p {
-  font-size: clamp(1.5rem, 3.4vw, 2.625rem);
+.lit {
+  font-size: clamp(1.625rem, 4.3vw, 3.5rem);
   font-weight: 300;
-  line-height: 1.24;
-  letter-spacing: -0.024em;
+  line-height: 1.2;
+  letter-spacing: -0.026em;
   text-wrap: pretty;
 }
-.named { white-space: nowrap; }
-.named svg { width: 0.74em; height: 0.74em; margin-right: 0.22em; vertical-align: -0.04em; }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28em;
+  padding: 0.06em 0.42em 0.08em 0.32em;
+  border-radius: 999px;
+  background: var(--solid);
+  box-shadow: var(--mark-shadow);
+  vertical-align: 0.04em;
+  font-size: 0.8em;
+  white-space: nowrap;
+}
+.pill svg { width: 0.82em; height: 0.82em; }
 
 /* ── A picture of the window ──
    The captures are of the page alone, so the frame is drawn here. Its measures are the window's own
@@ -280,7 +267,8 @@ main > section, main.legal { position: relative; width: var(--page); margin-inli
 .chips [aria-selected="true"] { background: var(--ink); color: var(--ground); }
 [data-screen-says] span { color: var(--ink); }
 .real .head .lede { min-height: 4.26em; }
-.window-wrap { container-type: inline-size; margin-top: 20px; }
+.window-wrap { container-type: inline-size; }
+.real .window-wrap { margin-top: 20px; }
 .window {
   --pt: calc(100cqw / 1280);
   position: relative;
@@ -470,25 +458,15 @@ footer .brand { color: var(--ink); font-size: 0.9375rem; }
 .marks-note { font-size: 0.8125rem; text-wrap: pretty; }
 
 /* ── Motion ──
-   Each thing arrives once. script.js adds .seen to the tray and to a tile the first time it is on
-   screen. */
+   script.js adds .w to each word of the .lit line and .on as the line is read, and .seen to a tile
+   the first time it is on screen. */
 @keyframes settle { from { opacity: 0; translate: 0 18px; } }
 @keyframes glass-arrive { from { opacity: 0; scale: 0.96; filter: blur(6px); } }
 @keyframes screen-arrive { from { opacity: 0; scale: 0.99; } }
-@keyframes tuck {
-  from { transform: translate(calc(var(--fx) * 1cqw), calc(var(--sy) * var(--u))) rotate(var(--sr)); animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1); }
-  58% { transform: translate(var(--slot), calc(-124 * var(--u))) rotate(0deg); animation-timing-function: cubic-bezier(0.5, 0, 0.3, 1); }
-  to { transform: translate(var(--slot), 0) rotate(0deg); }
-}
-@keyframes name-away { from, 45% { opacity: 1; } }
 
 @media (prefers-reduced-motion: no-preference) {
-  .js .stow:not(.seen) .sheet { transform: translate(calc(var(--fx) * 1cqw), calc(var(--sy) * var(--u))) rotate(var(--sr)); }
-  /* The loose sheets need the room above the tray, and keep it afterwards so nothing below moves. */
-  .js .stow { height: calc(384 * var(--u)); }
-  .js .stow:not(.seen) .sheet b { opacity: 1; }
-  .js .stow.seen .sheet { animation: tuck 1250ms backwards; animation-delay: calc(500ms + var(--i) * 130ms); }
-  .js .stow.seen .sheet b { animation: name-away 1250ms backwards; animation-delay: calc(500ms + var(--i) * 130ms); }
+  .js .lit .w { opacity: 0.16; transition: opacity 400ms ease; }
+  .js .lit .w.on { opacity: 1; }
 
   .js .tile { opacity: 0; translate: 0 22px; transition: opacity 600ms ease-out, translate 900ms var(--spring); }
   .js .tile.seen { opacity: 1; translate: 0 0; }
@@ -498,7 +476,7 @@ footer .brand { color: var(--ink); font-size: 0.9375rem; }
 
   /* `backwards`, not `both`: an arrival that holds its last frame keeps a layer glass cannot blur. */
   .nav { animation: glass-arrive 420ms var(--spring) backwards; }
-  .opening > :not(.stow) { animation: settle 800ms var(--spring) backwards; }
+  .opening > :not(.stage) { animation: settle 800ms var(--spring) backwards; }
   .opening > .lede { animation-delay: 60ms; }
   .opening > .button, .opening > .requires { animation-delay: 120ms; }
   .window picture:not([hidden]) { animation: screen-arrive 360ms var(--spring) backwards; }
@@ -512,7 +490,7 @@ footer .brand { color: var(--ink); font-size: 0.9375rem; }
   .glass { background: var(--ground); -webkit-backdrop-filter: none; backdrop-filter: none; }
 }
 @media (prefers-contrast: more) {
-  .glass, .tile, .chips button { box-shadow: inset 0 0 0 1px var(--ink-2); }
+  .glass, .tile, .pill, .drift li, .chips button { box-shadow: inset 0 0 0 1px var(--ink-2); }
   :root { --ink-2: var(--ink); --ink-3: var(--ink); }
 }
 
@@ -522,9 +500,6 @@ footer .brand { color: var(--ink); font-size: 0.9375rem; }
   .tile-dupes, .tile-loaded { grid-column: span 6; }
   .tile h3 { min-height: 0; }
 }
-@media (max-width: 900px) {
-  .stow { --u: 0.82px; }
-}
 @media (max-width: 760px) {
   .head { grid-template-columns: 1fr; }
   .head .lede { justify-self: start; max-width: none; }
@@ -533,12 +508,17 @@ footer .brand { color: var(--ink); font-size: 0.9375rem; }
 }
 @media (max-width: 600px) {
   :root { --r-card: 24px; }
-  .stow { --u: 0.62px; }
   .tile { padding: 22px; }
   /* A whole window is too small to read at this width. It is shown at nearly twice the size from
      its left edge, and the column's own edge cuts the rest. */
   .window-wrap { overflow: hidden; border-radius: 12px; box-shadow: var(--window-shadow); }
   .window { --pt: calc(185cqw / 1280); width: 185%; border-radius: 0; box-shadow: none; }
+  .stage { perspective: none; }
+  .stage .window-wrap { max-width: none; transform: none; }
+  /* The marks stand in a row above the window: there is no room at its sides. */
+  .drift { position: static; display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 28px; }
+  .drift li { position: static; width: auto; height: auto; aspect-ratio: 1; margin: 0; border-radius: 12px; scale: 1; translate: none; }
+  .drift svg { width: 54%; height: 54%; }
   .servers li { grid-template-columns: 10px minmax(0, 1fr) auto; }
   .where { justify-content: end; }
   .servers em:empty { display: none; }

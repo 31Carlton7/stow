@@ -5,8 +5,9 @@
  * Loads ../index.html from the file system in a window nobody can see (see below),
  * and writes it a screenful at a time at 1440 and 390 wide in both faces, then the bar with words
  * scrolled under it, and prints whether those words can be read through the bar. Motion is
- * switched off for those pictures, and every section's left and right edges are compared with the
- * bar's. Privacy and Terms are pictured once each. At the end motion is allowed, and the tray, the
+ * switched off for those pictures, every section's left and right edges are compared, and the bar
+ * and each part of the opening are measured against the page's centre line. Privacy and Terms are
+ * pictured once each. At the end motion is allowed, and the opening's window, the sentence, the
  * working tiles and each chip of the real window are checked and pictured.
  */
 import { app, BrowserWindow } from "electron";
@@ -76,6 +77,54 @@ async function sharpest(clip) {
   })()`);
 }
 
+/** How far the bar and each part of the opening lie from the page's centre line, and whether the
+ *  marks at the window's two sides mirror each other inside the column. A line of the headline is
+ *  measured by its ink: its words, and the icon by its own box, which its turn does not move. */
+const OPENING_MEASURES = `(() => {
+  const middle = document.documentElement.clientWidth / 2;
+  const off = (left, right) => (left + right) / 2 - middle;
+  const boxOff = (selector) => { const box = document.querySelector(selector).getBoundingClientRect(); return off(box.left, box.right); };
+  const round = (n) => Math.round(n * 100) / 100;
+
+  const headline = document.querySelector(".opening h1");
+  const inkLines = [];
+  const addInk = (left, right, top, bottom) => {
+    const line = inkLines.find((ink) => (top + bottom) / 2 > ink.top && (top + bottom) / 2 < ink.bottom);
+    if (line === undefined) inkLines.push({ left, right, top, bottom });
+    else Object.assign(line, { left: Math.min(line.left, left), right: Math.max(line.right, right) });
+  };
+  const range = document.createRange();
+  for (const node of headline.childNodes) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      // A word at a time: the space a line ends on is not ink.
+      for (const word of node.textContent.matchAll(/[^\\s\\u00a0]+/g)) {
+        range.setStart(node, word.index);
+        range.setEnd(node, word.index + word[0].length);
+        for (const box of range.getClientRects()) addInk(box.left, box.right, box.top, box.bottom);
+      }
+    } else {
+      const box = node.getBoundingClientRect();
+      const centre = (box.left + box.right) / 2;
+      addInk(centre - node.offsetWidth / 2, centre + node.offsetWidth / 2, box.top, box.bottom);
+    }
+  }
+
+  const bar = document.querySelector(".nav").getBoundingClientRect();
+  const column = document.querySelector(".opening").getBoundingClientRect();
+  const marks = [...document.querySelectorAll(".drift li")].map((li) => li.getBoundingClientRect());
+  const leftMarks = marks.filter((box) => box.right <= middle);
+  const rightMarks = marks.filter((box) => box.left >= middle);
+  // Each mark at the left against the one at the right that comes nearest to being its reflection.
+  const apart = (box, other) => Math.max(Math.abs((middle - box.left) - (other.right - middle)), Math.abs(box.top - other.top), Math.abs(box.width - other.width));
+  const unmirrored = Math.max(...leftMarks.map((box) => Math.min(...rightMarks.map((other) => apart(box, other)))));
+  const beyond = Math.max(0, ...marks.map((box) => Math.max(column.left - box.left, box.right - column.right)));
+
+  return "bar " + round(bar.width) + " wide, " + round(off(bar.left, bar.right)) + " off centre; opening off centre: headline lines "
+    + inkLines.map((ink) => round(off(ink.left, ink.right))).join(" ") + ", sentence " + round(boxOff(".opening .lede")) + ", button " + round(boxOff(".opening .button"))
+    + ", requirements " + round(boxOff(".opening .requires")) + ", window " + round(boxOff(".stage .window-wrap"))
+    + "; marks " + leftMarks.length + " left and " + rightMarks.length + " right, " + round(unmirrored) + " out of mirror, " + round(beyond) + " beyond the column";
+})()`;
+
 try {
   fs.mkdirSync(outDir, { recursive: true });
   for (const [width, height] of [[1440, 900], [390, 844]]) {
@@ -83,10 +132,11 @@ try {
       await face(width, height, mode, "reduce");
       const tall = await ask(`document.documentElement.scrollHeight`);
       console.log(`${width} ${mode}: ${tall} tall, widest thing ${await ask(`document.documentElement.scrollWidth`)}`);
-      // One column: the bar, every section and the foot begin and end on the same two lines.
-      const edges = await ask(`[...document.querySelectorAll(".nav, main > section, footer")].map((el) => { const box = el.getBoundingClientRect(); return (el.className || el.tagName.toLowerCase()).split(" ")[0] + " " + box.left + " to " + box.right; })`);
+      // One column: every section and the foot begin and end on the same two lines.
+      const edges = await ask(`[...document.querySelectorAll("main > section, footer")].map((el) => { const box = el.getBoundingClientRect(); return (el.className || el.tagName.toLowerCase()).split(" ")[0] + " " + box.left + " to " + box.right; })`);
       const lines = new Set(edges.map((edge) => edge.slice(edge.indexOf(" ") + 1)));
       console.log(`${width} ${mode}: ${lines.size === 1 ? `every section runs ${[...lines][0]}` : `edges DIFFER: ${edges.join("; ")}`}`);
+      console.log(`${width} ${mode}: ${await ask(OPENING_MEASURES)}`);
       // The page a screenful at a time, as it is scrolled through.
       for (let at = 0, n = 1; at < tall; at += height - 80, n += 1) {
         await ask(`scrollTo(0, ${at})`);
@@ -120,20 +170,21 @@ try {
     await shot(`${name}-${width}-${mode}`);
   }
 
-  // With motion allowed: the sheets lie loose until the tray is seen, then stand in their slots,
-  // and a tile waits below the fold and arrives when reached.
+  // With motion allowed: the window lies back at the top of the page and stands as it is scrolled,
+  // the sentence is dim until it is read, and a tile waits below the fold and arrives when reached.
   await face(1440, 900, "light", "no-preference");
-  const farthest = () => ask(`Math.round(Math.max(...[...document.querySelectorAll(".sheet")].map((el, i) => Math.abs(el.getBoundingClientRect().left - document.querySelector(".tray-front").getBoundingClientRect().left - 28 - i * 46))))`);
-  // Loaded afresh: the tray is on screen from the start, and the sheets begin half a second in.
-  await win.loadFile(indexFile);
-  await settle(300);
-  const loose = await farthest();
-  await shot("motion-loose");
-  await settle(1_000);
-  await shot("motion-tucking");
-  await settle(2_600);
-  console.log(`the tray: a sheet is ${loose} points from its slot at first, ${await farthest()} once put away`);
-  await shot("motion-stowed");
+  const stood = () => ask(`getComputedStyle(document.querySelector(".opening")).getPropertyValue("--stand").trim()`);
+  const lit = () => ask(`document.querySelectorAll(".lit .w.on").length + " of " + document.querySelectorAll(".lit .w").length`);
+  console.log(`at the top: the window has stood ${await stood()}, words lit ${await lit()}; ${await ask(OPENING_MEASURES)}`);
+  await shot("motion-top");
+  await ask(`scrollTo(0, 450)`);
+  await settle(600);
+  console.log(`scrolled half a screen: the window has stood ${await stood()}`);
+  await shot("motion-stood");
+  await ask(`document.querySelector(".lit").scrollIntoView({ behavior: "instant", block: "center" })`);
+  await settle(700);
+  console.log(`the sentence at the middle of the screen: words lit ${await lit()}`);
+  await shot("motion-sentence");
   const waits = await ask(`[...document.querySelectorAll(".tile")].every((el) => getComputedStyle(el).opacity === "0")`);
   await ask(`document.querySelector("#work .bento").scrollIntoView({ behavior: "instant" })`);
   await settle(2_600);

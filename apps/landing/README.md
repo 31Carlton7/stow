@@ -40,16 +40,19 @@ copy of `apps/desktop/build/logo.png`, and `favicon.png` and `touch-icon.png` ar
 
 ## What the page draws itself
 
-The opening's tray and its eight sheets are drawn by `styles.css` (`.stow`): each agent's file lies
-loose, squares up and drops into the tray, once. With reduced motion, or without scripts, the sheets
-are already in the tray.
+The opening's window stands in the middle of the column with four agents' marks at each side
+(`.stage`, `.drift`), the two sides mirrored. As the page is scrolled the window stands up and the
+marks go in behind it, and the sentence under it lights a word at a time. With reduced motion, or
+without scripts, the window stands, the marks are out at its sides and the sentence is lit. On a
+phone the marks are a row above the window.
 
 The tiles under "Tidy, with your say-so" are drawn by the page, not captured: a finding approved
 and undone, the model's switch, copies gathering into one, bars and a storage bar, servers being
 checked, and the accent swatches. Each shows something the app does. When the app changes, change
 them with it, and add nothing here that the app lacks.
 
-Every section, the bar and the foot share one width (`--page`).
+Every section and the foot share one width (`--page`). The bar is a small capsule on the same
+centre line.
 
 The glass values in `styles.css` are copied from `apps/desktop/src/renderer/src/theme/mac.css`.
 
@@ -59,6 +62,8 @@ The glass values in `styles.css` are copied from `apps/desktop/src/renderer/src/
 
 writes the page a screenful at a time at 1440 and 390 wide in both faces, and the bar with words
 scrolled under it, from a window nobody can see. It prints whether those words can be read through
-the bar and whether every section shares the bar's left and right edges. Then it pictures Privacy
-and Terms, and with motion allowed it watches the sheets go into the tray, presses the tiles and
-pictures each chip of the real window, and prints what it found.
+the bar, whether every section shares its left and right edges, the bar's width, and how far each
+part of the opening (each line of the headline by its ink, the button, the window, the marks at its
+sides) lies from the page's centre line. Then it pictures Privacy and Terms, and with motion allowed
+it watches the window stand up and the sentence light, presses the tiles and pictures each chip of
+the real window, and prints what it found.

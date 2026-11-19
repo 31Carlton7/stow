@@ -47,38 +47,46 @@
     </header>
 
     <main id="top">
-      <!-- The opening: each agent's file, loose on the page, squares up and drops into the tray. -->
+      <!-- The opening: the agents' marks stand at both sides of the window, which lies back and stands up as the page is scrolled. -->
       <section class="opening">
-        <h1>Everything your agents know, stowed.</h1>
+        <h1>Everything your agents know, <img class="inline-icon" src="assets/icon.png" width="112" height="112" alt="">&nbsp;stowed.</h1>
         <p class="lede">Stow is a Mac app that gathers every AI agent's memory, instructions, skills and servers in one place, and proposes cleanups you approve. Your files stay where they are.</p>
         <a class="button" data-download href="https://github.com/31Carlton7/stow/releases/latest">Download for Mac</a>
         <p class="requires">macOS 13 or later · Apple silicon and Intel · Free and open source</p>
-        <div class="stow" role="img" aria-label="Eight files, one from each agent, standing together in a tray.">
-          <div class="tray-back"></div>
-          <ul class="sheets" aria-hidden="true">
-            <li class="sheet" style="--i: 0; --fx: -36; --sy: -95; --sr: -11deg"><svg viewBox="0 0 24 24" style="color: #D97757"><use href="#mark-claude"/></svg><b>CLAUDE.md</b><i></i><i></i><i></i></li>
-            <li class="sheet" style="--i: 1; --fx: -24; --sy: -160; --sr: 7deg"><svg viewBox="0 0 24 24"><use href="#mark-codex"/></svg><b>AGENTS.md</b><i></i><i></i><i></i></li>
-            <li class="sheet" style="--i: 2; --fx: -13; --sy: -88; --sr: -5deg"><svg viewBox="0 0 24 24"><use href="#mark-cursor"/></svg><b>rules.mdc</b><i></i><i></i><i></i></li>
-            <li class="sheet" style="--i: 3; --fx: -4; --sy: -150; --sr: 9deg"><svg viewBox="0 0 24 24" style="color: #4796E3"><use href="#mark-gemini"/></svg><b>GEMINI.md</b><i></i><i></i><i></i></li>
-            <li class="sheet" style="--i: 4; --fx: 7; --sy: -96; --sr: -8deg"><svg viewBox="0 6.6795 40 34.641" style="color: #4F8CF5"><use href="#mark-realm"/></svg><b>MEMORY.md</b><i></i><i></i><i></i></li>
-            <li class="sheet" style="--i: 5; --fx: 16; --sy: -165; --sr: 5deg"><svg viewBox="0 0 16 16"><use href="#mark-opencode"/></svg><b>AGENTS.md</b><i></i><i></i><i></i></li>
-            <li class="sheet" style="--i: 6; --fx: 27; --sy: -90; --sr: 12deg"><svg viewBox="0 0 24 24"><use href="#mark-hermes"/></svg><b>SOUL.md</b><i></i><i></i><i></i></li>
-            <li class="sheet" style="--i: 7; --fx: 37; --sy: -150; --sr: -9deg"><svg viewBox="0 0 24 24"><use href="#mark-openclaw"/></svg><b>USER.md</b><i></i><i></i><i></i></li>
+        <div class="stage">
+          <ul class="drift" aria-hidden="true">
+            <li style="--x: -44%; --y: 7%; --z: 1"><svg viewBox="0 0 24 24" style="color: #D97757"><use href="#mark-claude"/></svg></li>
+            <li style="--x: -46%; --y: 35%; --z: 0.8"><svg viewBox="0 0 24 24"><use href="#mark-codex"/></svg></li>
+            <li style="--x: -43.5%; --y: 64%; --z: 0.92"><svg viewBox="0 0 24 24"><use href="#mark-cursor"/></svg></li>
+            <li style="--x: -46.5%; --y: 90%; --z: 0.74"><svg viewBox="0 0 16 16"><use href="#mark-opencode"/></svg></li>
+            <li style="--x: 44%; --y: 7%; --z: 1"><svg viewBox="0 0 24 24" style="color: #4796E3"><use href="#mark-gemini"/></svg></li>
+            <li style="--x: 46%; --y: 35%; --z: 0.8"><svg viewBox="0 6.6795 40 34.641" style="color: #4F8CF5"><use href="#mark-realm"/></svg></li>
+            <li style="--x: 43.5%; --y: 64%; --z: 0.92"><svg viewBox="0 0 24 24"><use href="#mark-hermes"/></svg></li>
+            <li style="--x: 46.5%; --y: 90%; --z: 0.74"><svg viewBox="0 0 24 24"><use href="#mark-openclaw"/></svg></li>
           </ul>
-          <div class="tray-front"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="4" width="8" height="2" rx="1" opacity="0.4"/><rect x="5.5" y="7.5" width="13" height="2" rx="1" opacity="0.66"/><rect x="3.25" y="11.25" width="17.5" height="9" rx="3.25"/></svg></div>
+          <div class="window-wrap">
+            <div class="window">
+              <picture>
+                <source srcset="assets/library-dark.webp" media="(prefers-color-scheme: dark)">
+                <img src="assets/library-light.webp" width="2560" height="1640" alt="The Stow window: a sidebar of agents, and their memories as a grid of glass cards." decoding="async">
+              </picture>
+              <span class="lights" aria-hidden="true"><i></i><i></i><i></i></span>
+            </div>
+          </div>
         </div>
       </section>
 
+      <!-- One long sentence that lights a word at a time as it is scrolled past. -->
       <section class="statement" aria-label="What Stow reads">
-        <p>
-          <span class="named"><svg viewBox="0 0 24 24" style="color: #D97757" aria-hidden="true"><use href="#mark-claude"/></svg>Claude&nbsp;Code</span> keeps what it knows in one folder.
-          <span class="named"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-codex"/></svg>Codex</span> in another.
-          <span class="named"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-cursor"/></svg>Cursor</span>,
-          <span class="named"><svg viewBox="0 0 24 24" style="color: #4796E3" aria-hidden="true"><use href="#mark-gemini"/></svg>Gemini</span>,
-          <span class="named"><svg viewBox="0 6.6795 40 34.641" style="color: #4F8CF5" aria-hidden="true"><use href="#mark-realm"/></svg>Realm</span>,
-          <span class="named"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#mark-opencode"/></svg>opencode</span>,
-          <span class="named"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-hermes"/></svg>Hermes</span> and
-          <span class="named"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-openclaw"/></svg>OpenClaw</span> each have their own.
+        <p class="lit">
+          <span class="pill"><svg viewBox="0 0 24 24" style="color: #D97757" aria-hidden="true"><use href="#mark-claude"/></svg>Claude Code</span> keeps what it knows in one folder.
+          <span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-codex"/></svg>Codex</span> in another.
+          <span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-cursor"/></svg>Cursor</span>,
+          <span class="pill"><svg viewBox="0 0 24 24" style="color: #4796E3" aria-hidden="true"><use href="#mark-gemini"/></svg>Gemini</span>,
+          <span class="pill"><svg viewBox="0 6.6795 40 34.641" style="color: #4F8CF5" aria-hidden="true"><use href="#mark-realm"/></svg>Realm</span>,
+          <span class="pill"><svg viewBox="0 0 16 16" aria-hidden="true"><use href="#mark-opencode"/></svg>opencode</span>,
+          <span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-hermes"/></svg>Hermes</span> and
+          <span class="pill"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#mark-openclaw"/></svg>OpenClaw</span> each have their own.
           Stow reads them all where they sit and keeps only an index, so removing it loses nothing.
         </p>
       </section>

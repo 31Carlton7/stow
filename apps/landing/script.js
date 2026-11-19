@@ -6,17 +6,70 @@ document.documentElement.classList.add("js");
 for (const link of document.querySelectorAll("[data-download]")) link.href = DOWNLOAD_URL;
 
 // Privacy and Terms load this file for their Download button and have nothing below to run.
-if (document.querySelector(".stow") !== null) runHomePage();
+if (document.querySelector(".opening") !== null) runHomePage();
 
 function runHomePage() {
-  // The sheets are put away once, when the tray is first on screen.
-  const tray = document.querySelector(".stow");
-  const trayWatch = new IntersectionObserver(([entry]) => {
-    if (!entry.isIntersecting) return;
-    tray.classList.add("seen");
-    trayWatch.disconnect();
-  }, { threshold: 0.6 });
-  trayWatch.observe(tray);
+  const stillness = matchMedia("(prefers-reduced-motion: reduce)");
+  const clamp01 = (n) => Math.min(1, Math.max(0, n));
+
+  // What follows the scroll: the window standing up, and the sentence that lights as it is read.
+  const opening = document.querySelector(".opening");
+  const litLine = document.querySelector(".lit");
+  // A copy of the list: the nodes are replaced as it is walked, and the live list would shift under it.
+  for (const node of Array.from(litLine.childNodes)) {
+    if (node.nodeType === Node.ELEMENT_NODE) {
+      node.classList.add("w");
+      continue;
+    }
+    const words = document.createDocumentFragment();
+    for (const piece of node.textContent.split(/(\s+)/)) {
+      if (piece.trim() === "") {
+        words.append(piece);
+        continue;
+      }
+      const word = document.createElement("span");
+      word.className = "w";
+      word.textContent = piece;
+      words.append(word);
+    }
+    node.replaceWith(words);
+  }
+  const litWords = litLine.querySelectorAll(".w");
+
+  // Only what is on screen is worked on as the page scrolls.
+  const onScreen = new Set();
+  const watched = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (entry.isIntersecting) onScreen.add(entry.target);
+      else onScreen.delete(entry.target);
+    }
+    followScroll();
+  });
+  watched.observe(opening);
+  watched.observe(litLine);
+
+  function followScroll() {
+    if (onScreen.has(opening) && !stillness.matches) {
+      const scrolled = clamp01(scrollY / (innerHeight * 0.5));
+      opening.style.setProperty("--stand", scrolled.toFixed(3));
+      opening.style.setProperty("--flow", scrolled.toFixed(3));
+    }
+    if (!onScreen.has(litLine)) return;
+    const box = litLine.getBoundingClientRect();
+    const read = clamp01((innerHeight * 0.86 - box.top) / (box.height + innerHeight * 0.36));
+    const lit = Math.round(read * litWords.length);
+    litWords.forEach((word, i) => word.classList.toggle("on", i < lit));
+  }
+
+  let scrollQueued = false;
+  addEventListener("scroll", () => {
+    if (scrollQueued) return;
+    scrollQueued = true;
+    requestAnimationFrame(() => {
+      scrollQueued = false;
+      followScroll();
+    });
+  }, { passive: true });
 
   const tiles = new IntersectionObserver((entries) => {
     for (const entry of entries) {
